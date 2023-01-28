@@ -1,7 +1,15 @@
 buildscript {
-    repositories.mavenCentral()
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("com.android.tools.build:gradle:7.4.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${Version.kotlin}")
+    }
 }
 
 task<Delete>("clean") {
-    delete = setOf(buildDir)
+    delete = setOf(buildDir, "buildSrc/build")
 }
