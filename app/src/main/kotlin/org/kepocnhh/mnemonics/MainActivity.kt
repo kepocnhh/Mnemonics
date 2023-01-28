@@ -24,20 +24,7 @@ class MainActivity : AppCompatActivity() {
                     .fillMaxSize()
                     .background(Color.Black)
             ) {
-                BasicText(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center),
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = Color.White
-                    ),
-                    text = """
-                        APPLICATION_ID: ${BuildConfig.APPLICATION_ID}
-                        BUILD_TYPE: ${BuildConfig.BUILD_TYPE}
-                        VERSION: ${BuildConfig.VERSION_NAME}-${BuildConfig.VERSION_CODE}
-                    """.trimIndent()
-                )
+                Router.Screen()
             }
         }
     }
