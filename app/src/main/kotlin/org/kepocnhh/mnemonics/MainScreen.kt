@@ -1,8 +1,11 @@
 package org.kepocnhh.mnemonics
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,6 +39,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -44,11 +48,16 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.isActive
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Random
 import kotlin.math.absoluteValue
+import kotlin.math.min
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 private val random = Random()
 
@@ -57,6 +66,23 @@ private fun nextNumber(random: Random, max: Int, actual: Int?): Int {
         val result = random.nextInt(max + 100) - 100
         if (result != actual) return result
     }
+}
+
+@Composable
+private fun ProgressBar(value: Float) {
+    Box(
+        modifier = Modifier
+            .background(Color.White)
+            .height(8.dp)
+            .fillMaxWidth(value)
+    )
+}
+
+private fun MutableState<Long?>.getOrSet(newValue: Long): Long {
+    val result = value
+    if (result != null) return result
+    value = newValue
+    return newValue
 }
 
 @Composable
@@ -75,19 +101,43 @@ internal fun MainScreen() {
             println("$TAG: index: $index")
             var value: Int? by rememberSaveable { mutableStateOf(null) }
             println("$TAG: value: $value")
+            val startState = rememberSaveable { mutableStateOf<Long?>(null) }
+            val max = 6.seconds
+            println("$TAG: start: ${startState.value}")
+            var progress: Float? by rememberSaveable { mutableStateOf(null) }
+            println("$TAG: progress: $progress")
+            val lifecycleOwner = LocalLifecycleOwner.current
             LaunchedEffect(value, index, isPaused) {
                 println("$TAG: launched effect...")
                 if (!isPaused) {
                     val next = async(Dispatchers.Default) {
                         nextNumber(random, 100, value)
                     }
-                    withContext(Dispatchers.Default) {
-                        delay(1.seconds)
+                    if (value != null) {
+                        val start = startState.getOrSet(System.nanoTime()).nanoseconds
+                        if (progress == null) {
+                            progress = 0f
+                        }
+                        withContext(Dispatchers.Default) {
+                            while (isActive && !isPaused) {
+                                val now = System.nanoTime().nanoseconds
+                                val duration = (now - start) / max
+                                if (duration < 1.0) {
+                                    progress = duration.toFloat()
+                                } else {
+                                    progress = null
+                                    startState.value = null
+                                    break
+                                }
+                            }
+                        }
                     }
-                    index++
-                    println("$TAG: effect index: $index")
-                    value = next.await()
-                    println("$TAG: effect value: $value")
+                    if (!isPaused) {
+                        index++
+                        println("$TAG: effect index: $index")
+                        value = next.await()
+                        println("$TAG: effect value: $value")
+                    }
                 }
             }
             val number = value
@@ -119,13 +169,21 @@ internal fun MainScreen() {
                 ),
                 text = text
             )
+            ProgressBar(progress ?: 0f)
             BasicText(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
                     .clickable {
                         println("$TAG: on click...")
-                        isPaused = !isPaused
+                        if (isPaused) {
+                            startState.value = progress?.let {
+                                System.nanoTime() - it * max.inWholeNanoseconds
+                            }?.toLong()
+                            isPaused = false
+                        } else {
+                            isPaused = true
+                        }
                     }
                     .wrapContentHeight(Alignment.CenterVertically),
                 style = TextStyle(
