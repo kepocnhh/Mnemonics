@@ -42,7 +42,7 @@ android {
 androidComponents.onVariants { variant ->
     val output = variant.outputs.single()
     check(output is com.android.build.api.variant.impl.VariantOutputImpl)
-    output.outputFileName.set("Mnemonics-${variant.name}-${Version.Application.name}-${Version.Application.code}.apk")
+    output.outputFileName.set("${rootProject.name}-${Version.Application.name}-${variant.name}-${Version.Application.code}.apk")
     afterEvaluate {
         tasks.getByName<JavaCompile>("compile${variant.name.capitalize()}JavaWithJavac") {
             targetCompatibility = Version.jvmTarget
@@ -55,6 +55,6 @@ androidComponents.onVariants { variant ->
 
 dependencies {
     implementation("androidx.activity:activity-compose:1.6.1")
-    implementation("androidx.appcompat:appcompat:1.6.0")
+    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
 }
