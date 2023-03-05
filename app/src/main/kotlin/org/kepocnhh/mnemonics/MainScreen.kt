@@ -33,32 +33,31 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.isActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Random
+import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.seconds
 
-private fun numbers() = flow {
-    println("[Flow|${hashCode()}]: start...")
-    val random = Random()
-    while (currentCoroutineContext().isActive) {
-        delay(1.seconds)
-        val value = random.nextInt(1_000)
-        println("[Flow|${hashCode()}]: emmit $value")
-        emit(value)
-    }
-    println("[Flow|${hashCode()}]: finish...")
-}
-
 private val random = Random()
+
+private fun nextNumber(random: Random, max: Int, actual: Int?): Int {
+    while (true) {
+        val result = random.nextInt(max + 100) - 100
+        if (result != actual) return result
+    }
+}
 
 @Composable
 internal fun MainScreen() {
@@ -72,42 +71,43 @@ internal fun MainScreen() {
         ) {
             var isPaused by rememberSaveable { mutableStateOf(true) }
             println("$TAG: is paused: $isPaused")
-//            var value by rememberSaveable { mutableStateOf(null) }
-            val lifecycleOwner = LocalLifecycleOwner.current
-//            val flow = numbers()
-//            val minActiveState = Lifecycle.State.STARTED
             var index: Int by remember { mutableStateOf(0) }
             println("$TAG: index: $index")
-            var value: Int? by remember { mutableStateOf(null) }
+            var value: Int? by rememberSaveable { mutableStateOf(null) }
             println("$TAG: value: $value")
             LaunchedEffect(value, index, isPaused) {
                 println("$TAG: launched effect...")
-                if (!isPaused) withContext(Dispatchers.IO) {
-                    println("$TAG: delay...")
-                    delay(1.seconds)
-                    val next = random.nextInt(1_000)
-//                    val next = 128
+                if (!isPaused) {
+                    val next = async(Dispatchers.Default) {
+                        nextNumber(random, 100, value)
+                    }
+                    withContext(Dispatchers.Default) {
+                        delay(1.seconds)
+                    }
                     index++
                     println("$TAG: effect index: $index")
-                    value = next
+                    value = next.await()
                     println("$TAG: effect value: $value")
                 }
             }
-//            val value: Int? by produceState<Int?>(null, lifecycleOwner.lifecycle) {
-//                println("$TAG: produce state...")
-//                val state: MutableState<Int?> = this
-//                if (!isPaused) lifecycleOwner.lifecycleScope.launch {
-//                    println("$TAG: launch...")
-//                    delay(1.seconds)
-//                    state.value = random.nextInt(1_000)
-//                }
-//            }
-            val text = when (value) {
+            val number = value
+            val text = when (number) {
                 null -> "..."
-                -2 -> "  0"
-                -1 -> " 00"
-                else -> "%03d".format(value)
+                -100 -> " 00"
+                else -> {
+                    if (number < 0) {
+                        " %02d".format(number.absoluteValue)
+                    } else {
+                        "%03d".format(number)
+                    }
+                }
             }
+//            val text = when (value) {
+//                null -> "..."
+//                -2 -> "  0"
+//                -1 -> " 00"
+//                else -> "%03d".format(value)
+//            }
             BasicText(
                 modifier = Modifier
                     .fillMaxWidth(),
