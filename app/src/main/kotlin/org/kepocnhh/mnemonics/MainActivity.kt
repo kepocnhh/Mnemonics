@@ -24,7 +24,9 @@ class MainActivity : AppCompatActivity() {
                     .fillMaxSize()
                     .background(Color.Black)
             ) {
-                Router.Screen()
+                val TAG = "[MainActivity|${hashCode()}]"
+                println("$TAG:\n\tcompose...")
+                MainScreen()
             }
         }
     }
