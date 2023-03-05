@@ -22,7 +22,6 @@ class MainActivity : AppCompatActivity() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black)
             ) {
                 val TAG = "[MainActivity|${hashCode()}]"
                 println("$TAG:\n\tcompose...")

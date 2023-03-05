@@ -69,10 +69,13 @@ private fun nextNumber(random: Random, max: Int, actual: Int?): Int {
 }
 
 @Composable
-private fun ProgressBar(value: Float) {
+private fun ProgressBar(
+    color: Color,
+    value: Float
+) {
     Box(
         modifier = Modifier
-            .background(Color.White)
+            .background(color)
             .height(8.dp)
             .fillMaxWidth(value)
     )
@@ -87,7 +90,12 @@ private fun MutableState<Long?>.getOrSet(newValue: Long): Long {
 
 @Composable
 internal fun MainScreen() {
-    Box(Modifier.fillMaxSize()) {
+    val foregroundColor = Color.Black
+    val backgroundColor = Color.White
+    Box(
+        Modifier.fillMaxSize()
+            .background(backgroundColor)
+    ) {
         val TAG = "[MainScreen|${hashCode()}]"
         println("$TAG:\n\tcompose...")
         Column(
@@ -162,14 +170,17 @@ internal fun MainScreen() {
                 modifier = Modifier
                     .fillMaxWidth(),
                 style = TextStyle(
-                    fontSize = 48.sp,
+                    fontSize = 128.sp,
                     fontFamily = FontFamily.Monospace,
-                    color = Color.White,
+                    color = foregroundColor,
                     textAlign = TextAlign.Center
                 ),
                 text = text
             )
-            ProgressBar(progress ?: 0f)
+            ProgressBar(
+                color = foregroundColor,
+                value = progress ?: 0f
+            )
             BasicText(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -188,7 +199,7 @@ internal fun MainScreen() {
                     .wrapContentHeight(Alignment.CenterVertically),
                 style = TextStyle(
                     fontSize = 14.sp,
-                    color = Color.White,
+                    color = foregroundColor,
                     textAlign = TextAlign.Center
                 ),
                 text = if (isPaused) "play" else "pause"
