@@ -19,6 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import org.kepocnhh.mnemonics.foundation.provider.Injection
 import org.kepocnhh.mnemonics.foundation.provider.coroutine.Contexts
+import org.kepocnhh.mnemonics.implementation.provider.data.local.FinalLocalDataProvider
 
 internal class App : Application() {
     object Theme {
@@ -53,6 +54,10 @@ internal class App : Application() {
                 main = Dispatchers.Main,
                 io = Dispatchers.IO,
             ),
+            local = FinalLocalDataProvider(
+                context = this,
+                default = ThemeState(colorsType = ColorsType.AUTO)
+            )
         )
         _viewModelFactory = object : ViewModelProvider.Factory {
             override fun <U : ViewModel> create(modelClass: Class<U>): U {

@@ -2,6 +2,7 @@ package org.kepocnhh.mnemonics.implementation.module.theme
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.ThemeState
 import org.kepocnhh.mnemonics.foundation.provider.Injection
@@ -13,15 +14,21 @@ internal class ThemeViewModel(private val injection: Injection) : AbstractViewMo
 
     fun requestThemeState() {
         injection.launch {
-            _state.value = ThemeState(colorsType = ColorsType.DARK)
-            // todo
+            val themeState = withContext(injection.contexts.io) {
+                injection.local.themeState
+            }
+            _state.value = themeState
         }
     }
 
     fun setColorsType(type: ColorsType) {
         injection.launch {
-            _state.value = ThemeState(colorsType = type)
-            // todo
+            val themeState = withContext(injection.contexts.io) {
+                injection.local.themeState.copy(colorsType = type).also {
+                    injection.local.themeState = it
+                }
+            }
+            _state.value = themeState
         }
     }
 }
