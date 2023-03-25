@@ -19,7 +19,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +29,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
 import java.util.Random
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.milliseconds
@@ -47,12 +47,11 @@ private fun nextNumber(random: Random, max: Int, actual: Int?): Int {
 
 @Composable
 private fun ProgressBar(
-    color: Color,
     value: Float
 ) {
     Box(
         modifier = Modifier
-            .background(color)
+            .background(App.Theme.colors.foreground)
             .height(8.dp)
             .fillMaxWidth(value)
     )
@@ -66,13 +65,10 @@ private fun MutableState<Long?>.getOrSet(newValue: Long): Long {
 }
 
 @Composable
-internal fun MainScreen() {
-    val foregroundColor = Color.Black
-    val backgroundColor = Color.White
-    Box(
-        Modifier.fillMaxSize()
-            .background(backgroundColor)
-    ) {
+internal fun MainScreen(
+    toSettings: () -> Unit,
+) {
+    Box(Modifier.fillMaxSize()) {
         val TAG = "[MainScreen|${hashCode()}]"
         println("$TAG:\n\tcompose...")
         Column(
@@ -143,15 +139,12 @@ internal fun MainScreen() {
                 style = TextStyle(
                     fontSize = 128.sp,
                     fontFamily = FontFamily.Monospace,
-                    color = foregroundColor,
+                    color = App.Theme.colors.foreground,
                     textAlign = TextAlign.Center
                 ),
                 text = text
             )
-            ProgressBar(
-                color = foregroundColor,
-                value = progress ?: 0f
-            )
+            ProgressBar(value = progress ?: 0f)
             BasicText(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -159,9 +152,11 @@ internal fun MainScreen() {
                     .clickable {
                         println("$TAG: on click...")
                         if (isPaused) {
-                            startState.value = progress?.let {
-                                System.nanoTime() - it * max.inWholeNanoseconds
-                            }?.toLong()
+                            startState.value = progress
+                                ?.let {
+                                    System.nanoTime() - it * max.inWholeNanoseconds
+                                }
+                                ?.toLong()
                             isPaused = false
                         } else {
                             isPaused = true
@@ -170,10 +165,17 @@ internal fun MainScreen() {
                     .wrapContentHeight(Alignment.CenterVertically),
                 style = TextStyle(
                     fontSize = 14.sp,
-                    color = foregroundColor,
+                    color = App.Theme.colors.foreground,
                     textAlign = TextAlign.Center
                 ),
                 text = if (isPaused) "play" else "pause"
+            )
+            Text(
+                value = "settings",
+                onClick = {
+                    isPaused = true
+                    toSettings()
+                },
             )
         }
     }
