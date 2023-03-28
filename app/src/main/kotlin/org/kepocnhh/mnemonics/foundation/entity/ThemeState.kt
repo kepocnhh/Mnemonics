@@ -6,6 +6,13 @@ internal enum class ColorsType {
     AUTO
 }
 
+internal enum class Language {
+    RU,
+    EN,
+    AUTO,
+}
+
 internal data class ThemeState(
-    val colorsType: ColorsType
+    val colorsType: ColorsType,
+    val language: Language,
 )

@@ -168,10 +168,10 @@ internal fun MainScreen(
                     color = App.Theme.colors.foreground,
                     textAlign = TextAlign.Center
                 ),
-                text = if (isPaused) "play" else "pause"
+                text = if (isPaused) App.Theme.strings.play else App.Theme.strings.pause
             )
             Text(
-                value = "settings",
+                value = App.Theme.strings.settings,
                 onClick = {
                     isPaused = true
                     toSettings()

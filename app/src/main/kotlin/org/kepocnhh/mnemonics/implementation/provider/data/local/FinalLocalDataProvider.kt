@@ -3,6 +3,7 @@ package org.kepocnhh.mnemonics.implementation.provider.data.local
 import android.content.Context
 import org.kepocnhh.mnemonics.BuildConfig
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
+import org.kepocnhh.mnemonics.foundation.entity.Language
 import org.kepocnhh.mnemonics.foundation.entity.ThemeState
 import org.kepocnhh.mnemonics.foundation.provider.data.local.LocalDataProvider
 
@@ -18,12 +19,17 @@ internal class FinalLocalDataProvider(
                 colorsType = preferences
                     .getString("colorsType", null)
                     ?.let(ColorsType::valueOf)
-                    ?: default.colorsType
+                    ?: default.colorsType,
+                language = preferences
+                    .getString("language", null)
+                    ?.let(Language::valueOf)
+                    ?: default.language,
             )
         }
         set(value) {
             preferences.edit()
                 .putString("colorsType", value.colorsType.name)
+                .putString("language", value.language.name)
                 .commit()
         }
 }
