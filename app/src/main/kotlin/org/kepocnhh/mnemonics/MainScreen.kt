@@ -1,5 +1,8 @@
 package org.kepocnhh.mnemonics
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -87,6 +90,7 @@ internal fun MainScreen(
             println("$TAG: start: ${startState.value}")
             var progress: Float? by rememberSaveable { mutableStateOf(null) }
             println("$TAG: progress: $progress")
+            val delay = 250.milliseconds
             LaunchedEffect(value, index, isPaused) {
                 println("$TAG: launched effect...")
                 if (!isPaused) {
@@ -104,7 +108,7 @@ internal fun MainScreen(
                                 val duration = (now - start) / max
                                 if (duration < 1.0) {
                                     progress = duration.toFloat()
-                                    delay(250.milliseconds) // todo animation
+                                    delay(delay)
                                 } else {
                                     progress = null
                                     startState.value = null
@@ -144,7 +148,17 @@ internal fun MainScreen(
                 ),
                 text = text
             )
-            ProgressBar(value = progress ?: 0f)
+            val animatable = remember { Animatable(initialValue = 0f) }
+            LaunchedEffect(progress) {
+                animatable.animateTo(
+                    targetValue = progress ?: 0f,
+                    animationSpec = tween(
+                        durationMillis = delay.inWholeMilliseconds.toInt(),
+                        easing = LinearEasing
+                    ),
+                )
+            }
+            ProgressBar(value = animatable.value)
             BasicText(
                 modifier = Modifier
                     .fillMaxWidth()
