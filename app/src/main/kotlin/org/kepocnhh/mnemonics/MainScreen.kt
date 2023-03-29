@@ -4,6 +4,8 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -213,18 +215,30 @@ internal fun MainScreen() {
                 ),
                 text = text
             )
-            val animatable = remember { Animatable(initialValue = 0f) }
-            LaunchedEffect(progress) {
-                if (progress == 0f) animatable.stop()
-                animatable.animateTo(
-                    targetValue = progress ?: 0f,
-                    animationSpec = tween(
-                        durationMillis = delay.inWholeMilliseconds.toInt(),
-                        easing = LinearEasing
-                    ),
+            val animationSpec = if (progress == null || progress == 0f) {
+                snap<Float>()
+            } else {
+                tween(
+                    durationMillis = delay.inWholeMilliseconds.toInt(),
+                    easing = LinearEasing
                 )
             }
-            ProgressBar(value = animatable.value)
+            val animated by animateFloatAsState(
+                targetValue = progress ?: 0f,
+                animationSpec = animationSpec
+            )
+//            val animatable = remember { Animatable(initialValue = 0f) }
+//            LaunchedEffect(progress) {
+//                if (progress == 0f) animatable.stop()
+//                animatable.animateTo(
+//                    targetValue = progress ?: 0f,
+//                    animationSpec = tween(
+//                        durationMillis = delay.inWholeMilliseconds.toInt(),
+//                        easing = LinearEasing
+//                    ),
+//                )
+//            }
+            ProgressBar(value = animated)
             Text(
                 value = if (isPaused) App.Theme.strings.play else App.Theme.strings.pause,
                 onClick = {
