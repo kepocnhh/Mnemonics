@@ -1,15 +1,20 @@
 package org.kepocnhh.mnemonics
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -22,6 +27,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
@@ -68,12 +78,67 @@ private fun MutableState<Long?>.getOrSet(newValue: Long): Long {
 }
 
 @Composable
-internal fun MainScreen(
-    toSettings: () -> Unit,
-) {
+internal fun ToSettings(onBack: () -> Unit) {
+    val TAG = "[ToSettings]"
+    println("$TAG:\n\tcompose...")
+    val width = LocalConfiguration.current.screenWidthDp.dp
+    val animatable = remember { Animatable(initialValue = 1f) }
+    val delay = 250.milliseconds
+//    val delay = 2_000.milliseconds
+    var back by remember { mutableStateOf(false) }
+    val targetValue = if (back) 1f else 0f
+//    val easing = if (back) FastOutSlowInEasing else LinearOutSlowInEasing
+    val easing = LinearEasing
+//    val easing = FastOutSlowInEasing
+    LaunchedEffect(back) {
+        animatable.animateTo(
+            targetValue = targetValue,
+            animationSpec = tween(
+                durationMillis = delay.inWholeMilliseconds.toInt(),
+                easing = easing
+            ),
+        )
+    }
+    if (back) {
+        if (animatable.value == targetValue) onBack()
+    }
+    println("$TAG: animatable: ${animatable.value}")
+    println("$TAG: target value: $targetValue")
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(
+                interactionSource = MutableInteractionSource(),
+                indication = null,
+            ) {},
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    App.Theme.colors.background.copy(alpha = 1f - animatable.value),
+                ),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset(x = width * animatable.value),
+        ) {
+            SettingsScreen(
+                onBack = {
+                    if (!back) back = true
+                }
+            )
+        }
+    }
+}
+
+@Composable
+internal fun MainScreen() {
     Box(Modifier.fillMaxSize()) {
         val TAG = "[MainScreen|${hashCode()}]"
         println("$TAG:\n\tcompose...")
+        var toSettings by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -150,6 +215,7 @@ internal fun MainScreen(
             )
             val animatable = remember { Animatable(initialValue = 0f) }
             LaunchedEffect(progress) {
+                if (progress == 0f) animatable.stop()
                 animatable.animateTo(
                     targetValue = progress ?: 0f,
                     animationSpec = tween(
@@ -159,37 +225,35 @@ internal fun MainScreen(
                 )
             }
             ProgressBar(value = animatable.value)
-            BasicText(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .clickable {
-                        println("$TAG: on click...")
-                        if (isPaused) {
-                            startState.value = progress
-                                ?.let {
-                                    System.nanoTime() - it * max.inWholeNanoseconds
-                                }
-                                ?.toLong()
-                            isPaused = false
-                        } else {
-                            isPaused = true
-                        }
+            Text(
+                value = if (isPaused) App.Theme.strings.play else App.Theme.strings.pause,
+                onClick = {
+                    println("$TAG: on click...")
+                    if (isPaused) {
+                        startState.value = progress
+                            ?.let {
+                                System.nanoTime() - it * max.inWholeNanoseconds
+                            }
+                            ?.toLong()
+                        isPaused = false
+                    } else {
+                        isPaused = true
                     }
-                    .wrapContentHeight(Alignment.CenterVertically),
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    color = App.Theme.colors.foreground,
-                    textAlign = TextAlign.Center
-                ),
-                text = if (isPaused) App.Theme.strings.play else App.Theme.strings.pause
+                }
             )
             Text(
                 value = App.Theme.strings.settings,
                 onClick = {
                     isPaused = true
-                    toSettings()
+                    toSettings = true
                 },
+            )
+        }
+        if (toSettings) {
+            ToSettings(
+                onBack = {
+                    toSettings = false
+                }
             )
         }
     }

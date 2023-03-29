@@ -1,6 +1,7 @@
 package org.kepocnhh.mnemonics
 
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -8,10 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import org.kepocnhh.mnemonics.foundation.entity.ThemeState
 import org.kepocnhh.mnemonics.implementation.module.theme.ThemeViewModel
@@ -29,20 +26,10 @@ class MainActivity : AppCompatActivity() {
             ) {
                 val TAG = "[MainActivity|${hashCode()}]"
                 println("$TAG:\n\tcompose...")
-                var main by remember { mutableStateOf(true) }
-                if (main) {
-                    MainScreen(
-                        toSettings = {
-                            main = false
-                        }
-                    )
-                } else {
-                    SettingsScreen(
-                        onBack = {
-                            main = true
-                        }
-                    )
+                BackHandler {
+                    finish()
                 }
+                MainScreen()
             }
         }
     }

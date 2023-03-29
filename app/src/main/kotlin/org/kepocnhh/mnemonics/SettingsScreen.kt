@@ -1,5 +1,6 @@
 package org.kepocnhh.mnemonics
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +17,6 @@ import androidx.compose.ui.window.Dialog
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
 import org.kepocnhh.mnemonics.implementation.module.theme.ThemeViewModel
-import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Colors
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
 
 @Composable
@@ -87,7 +87,13 @@ private fun DialogLanguage(onDismiss: () -> Unit) {
 internal fun SettingsScreen(
     onBack: () -> Unit,
 ) {
-    Box(Modifier.fillMaxSize()) {
+    BackHandler {
+        onBack()
+    }
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .background(App.Theme.colors.background),
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
