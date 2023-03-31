@@ -11,6 +11,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
@@ -22,19 +24,27 @@ import org.kepocnhh.mnemonics.foundation.entity.Language
 import org.kepocnhh.mnemonics.foundation.provider.Injection
 import org.kepocnhh.mnemonics.foundation.provider.coroutine.Contexts
 import org.kepocnhh.mnemonics.implementation.provider.data.local.FinalLocalDataProvider
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Dimensions
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Strings
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.strings.En
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.strings.Ru
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.toInsets
 
 internal class App : Application() {
     object Theme {
         private val LocalColors = staticCompositionLocalOf<Colors> { error("no colors") }
+        private val LocalDimensions = staticCompositionLocalOf<Dimensions> { error("no dimensions") }
         private val LocalStrings = staticCompositionLocalOf<Strings> { error("no strings") }
 
         val colors: Colors
             @Composable
             @ReadOnlyComposable
             get() = LocalColors.current
+
+        val dimensions: Dimensions
+            @Composable
+            @ReadOnlyComposable
+            get() = LocalDimensions.current
 
         val strings: Strings
             @Composable
@@ -63,6 +73,11 @@ internal class App : Application() {
                         }
                     }
                 },
+                LocalDimensions provides Dimensions(
+                    insets = LocalView.current.rootWindowInsets.toInsets(),
+                    toolbar = 56.dp,
+                    icon = 24.dp
+                ),
                 content = content,
             )
         }
