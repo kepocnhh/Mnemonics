@@ -1,11 +1,17 @@
 package org.kepocnhh.mnemonics
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Dialog
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
@@ -94,6 +102,38 @@ internal fun SettingsScreen(
         modifier = Modifier.fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    end = App.Theme.dimensions.insets.end,
+                    start = App.Theme.dimensions.insets.start,
+                    top = App.Theme.dimensions.insets.top,
+                )
+                .height(App.Theme.dimensions.toolbar),
+        ) {
+            Row(
+                modifier = Modifier
+                    .size(App.Theme.dimensions.toolbar),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(App.Theme.dimensions.toolbar)
+                        .clickable {
+                            onBack()
+                        },
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(App.Theme.dimensions.icon)
+                            .align(Alignment.Center),
+                        painter = painterResource(id = R.drawable.cross),
+                        contentDescription = App.Theme.strings.back,
+                        colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
+                    )
+                }
+            }
+        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -123,12 +163,6 @@ internal fun SettingsScreen(
                     dialogLanguage = false
                 }
             }
-            Text(
-                value = App.Theme.strings.back,
-                onClick = {
-                    onBack()
-                },
-            )
         }
     }
 }
