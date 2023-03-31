@@ -7,5 +7,6 @@ import androidx.compose.ui.unit.Dp
 internal data class Dimensions(
     val insets: Insets,
     val toolbar: Dp,
+    val button: Dp,
     val icon: Dp,
 )

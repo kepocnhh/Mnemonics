@@ -15,12 +15,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -75,6 +77,7 @@ private fun ProgressBar(
         modifier = Modifier
             .background(App.Theme.colors.foreground)
             .height(8.dp)
+            .padding(end = App.Theme.dimensions.insets.end)
             .fillMaxWidth(value)
     )
 }
@@ -183,6 +186,7 @@ internal fun MainScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.Center)
+                .padding(end = App.Theme.dimensions.insets.end)
         ) {
             println("$TAG: is paused: $isPaused")
             var index: Int by remember { mutableStateOf(0) }
@@ -271,24 +275,40 @@ internal fun MainScreen() {
                 ),
                 text = text
             )
-            val animated = animatable.value
-            ProgressBar(value = animated)
-            Text(
-                value = if (isPaused) App.Theme.strings.play else App.Theme.strings.pause,
-                onClick = {
-                    println("$TAG: on click...")
-                    if (isPaused) {
-                        startState.value = progress
-                            ?.let {
-                                System.nanoTime() - it * max.inWholeNanoseconds
-                            }
-                            ?.toLong()
-                        isPaused = false
-                    } else {
-                        isPaused = true
-                    }
-                }
+            ProgressBar(value = animatable.value)
+            Spacer(
+                modifier = Modifier
+                    .height(App.Theme.dimensions.button)
             )
+            Box(
+                modifier = Modifier
+                    .size(App.Theme.dimensions.button)
+                    .align(Alignment.CenterHorizontally)
+                    .clickable {
+                        println("$TAG: on click...")
+                        if (isPaused) {
+                            startState.value = progress
+                                ?.let {
+                                    System.nanoTime() - it * max.inWholeNanoseconds
+                                }
+                                ?.toLong()
+                            isPaused = false
+                        } else {
+                            isPaused = true
+                        }
+                    },
+            ) {
+                Image(
+                    modifier = Modifier
+                        .size(App.Theme.dimensions.icon)
+                        .align(Alignment.Center),
+                    painter = painterResource(
+                        id = if (isPaused) R.drawable.play else R.drawable.pause
+                    ),
+                    contentDescription = if (isPaused) App.Theme.strings.play else App.Theme.strings.pause,
+                    colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
+                )
+            }
         }
         if (toSettings) {
             ToSettings(

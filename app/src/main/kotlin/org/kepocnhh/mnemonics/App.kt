@@ -76,6 +76,7 @@ internal class App : Application() {
                 LocalDimensions provides Dimensions(
                     insets = LocalView.current.rootWindowInsets.toInsets(),
                     toolbar = 56.dp,
+                    button = 56.dp,
                     icon = 24.dp
                 ),
                 content = content,
