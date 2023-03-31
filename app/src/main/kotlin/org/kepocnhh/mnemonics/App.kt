@@ -1,6 +1,7 @@
 package org.kepocnhh.mnemonics
 
 import android.app.Application
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -50,6 +51,8 @@ internal class App : Application() {
             @Composable
             @ReadOnlyComposable
             get() = LocalStrings.current
+
+        val NoneMutableInteractionSource = MutableInteractionSource()
 
         @Composable
         fun Composition(

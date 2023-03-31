@@ -56,6 +56,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.foundation.catchClicks
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.foundation.onClick
 import java.util.Random
 import kotlin.math.absoluteValue
 import kotlin.time.Duration.Companion.milliseconds
@@ -119,28 +121,22 @@ internal fun ToSettings(onBack: () -> Unit) {
     }
     println("$TAG: animatable: ${animatable.value}")
     println("$TAG: target value: $targetValue")
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .clickable(
-                interactionSource = MutableInteractionSource(),
-                indication = null,
-            ) {
-                // todo back?
-            },
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        val alpha = (1f - animatable.value) * 0.75f
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    App.Theme.colors.background.copy(alpha = (1f - animatable.value) * 0.75f),
-                ),
+                .background(App.Theme.colors.background.copy(alpha = alpha))
+                .onClick {
+                    if (!back) back = true
+                },
         )
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(targetWidth)
-                .offset(x = initialWidth * animatable.value + (initialWidth - targetWidth)),
+                .offset(x = initialWidth * animatable.value + (initialWidth - targetWidth))
+                .catchClicks(),
         ) {
             SettingsScreen(
                 onBack = {
