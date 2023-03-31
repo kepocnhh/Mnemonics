@@ -90,11 +90,6 @@ private fun times(
 @Composable
 private fun ProgressBar(state: MainViewModel.State) {
     val animatable = remember { Animatable(initialValue = state.progress) }
-    val duration = MainViewModel.time - MainViewModel.time * state.progress.toDouble()
-    val animationSpec = tween<Float>(
-        durationMillis = duration.inWholeMilliseconds.toInt(),
-        easing = LinearEasing
-    )
     LaunchedEffect(state.number) {
         animatable.snapTo(state.progress)
     }
@@ -102,6 +97,11 @@ private fun ProgressBar(state: MainViewModel.State) {
         if (state.isPaused) {
             if (animatable.isRunning) animatable.stop()
         } else {
+            val duration = MainViewModel.time - MainViewModel.time * state.progress.toDouble()
+            val animationSpec = tween<Float>(
+                durationMillis = duration.inWholeMilliseconds.toInt(),
+                easing = LinearEasing
+            )
             animatable.animateTo(
                 targetValue = 1f,
                 animationSpec = animationSpec,
@@ -149,24 +149,24 @@ private fun ProgressBarVertical(
 }
 
 @Composable
-private fun PlayPauseButton(
-    @DrawableRes icon: Int,
-    contentDescription: String,
-    onClick: () -> Unit
-) {
+private fun PlayPauseButton() {
+    val viewModel = App.viewModel<MainViewModel>()
+    val state by viewModel.state.collectAsState()
     Box(
         modifier = Modifier
             .size(App.Theme.dimensions.button * 2)
             .clickable {
-                onClick()
+                viewModel.pause(!state.isPaused)
             },
     ) {
         Image(
             modifier = Modifier
                 .size(App.Theme.dimensions.icon)
                 .align(Alignment.Center),
-            painter = painterResource(icon),
-            contentDescription = contentDescription,
+            painter = painterResource(
+                id = if (state.isPaused) R.drawable.play else R.drawable.pause
+            ),
+            contentDescription = if (state.isPaused) App.Theme.strings.play else App.Theme.strings.pause,
             colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
         )
     }
@@ -212,7 +212,7 @@ internal fun ToSettings(onBack: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(App.Theme.colors.background.copy(alpha = alpha))
+                .background(App.Theme.colors.background.copy(alpha = alpha)) // todo black?
                 .onClick {
                     if (!back) back = true
                 },
@@ -271,6 +271,21 @@ private fun Toolbar(toSettings: () -> Unit) {
 }
 
 @Composable
+private fun NextNumber() {
+    val viewModel = App.viewModel<MainViewModel>()
+    val TAG = "[NextNumber|${viewModel.hashCode()}]"
+    val state by viewModel.state.collectAsState()
+    LaunchedEffect(state.isPaused) {
+        println("$TAG: paused: ${state.isPaused}")
+        if (!state.isPaused) viewModel.nextNumber()
+    }
+    LaunchedEffect(state.number) {
+        println("$TAG: | number: ${state.number} | paused: ${state.isPaused}")
+        viewModel.nextNumber()
+    }
+}
+
+@Composable
 private fun MainScreenPortrait() {
     Box(Modifier.fillMaxSize()) {
         val TAG = "[MS|P|${hashCode()}]"
@@ -283,9 +298,15 @@ private fun MainScreenPortrait() {
                 toSettings = true
             }
         )
-        LaunchedEffect(state.number, state.isPaused) {
-            viewModel.nextNumber()
-        }
+//        LaunchedEffect(state.isPaused) {
+//            println("$TAG: paused: ${state.isPaused}")
+//            if (!state.isPaused) viewModel.nextNumber()
+//        }
+//        LaunchedEffect(state.number) {
+//            println("$TAG: | number: ${state.number} | paused: ${state.isPaused}")
+//            viewModel.nextNumber()
+//        }
+        NextNumber()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -309,13 +330,7 @@ private fun MainScreenPortrait() {
                 family = FontFamily.Monospace
             )
             ProgressBar(state)
-            PlayPauseButton(
-                icon = if (state.isPaused) R.drawable.play else R.drawable.pause,
-                contentDescription = if (state.isPaused) App.Theme.strings.play else App.Theme.strings.pause,
-                onClick = {
-                    viewModel.pause(!state.isPaused)
-                },
-            )
+            PlayPauseButton()
         }
         if (toSettings) {
             ToSettings(
@@ -330,6 +345,7 @@ private fun MainScreenPortrait() {
 @Composable
 private fun MainScreenLandscape() {
     Box(Modifier.fillMaxSize()) {
+        val TAG = "[MS|L|${hashCode()}]"
         val viewModel = App.viewModel<MainViewModel>()
         val state by viewModel.state.collectAsState()
         var toSettings by rememberSaveable { mutableStateOf(false) }
@@ -339,9 +355,15 @@ private fun MainScreenLandscape() {
                 toSettings = true
             }
         )
-        LaunchedEffect(state.number, state.isPaused) {
-            viewModel.nextNumber()
-        }
+//        LaunchedEffect(state.isPaused) {
+//            println("$TAG: paused: ${state.isPaused}")
+//            if (!state.isPaused) viewModel.nextNumber()
+//        }
+//        LaunchedEffect(state.number) {
+//            println("$TAG: | number: ${state.number} | paused: ${state.isPaused}")
+//            if (!state.isPaused) viewModel.nextNumber()
+//        }
+        NextNumber()
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -369,13 +391,7 @@ private fun MainScreenLandscape() {
                     size = 128.sp,
                     family = FontFamily.Monospace
                 )
-                PlayPauseButton(
-                    icon = if (state.isPaused) R.drawable.play else R.drawable.pause,
-                    contentDescription = if (state.isPaused) App.Theme.strings.play else App.Theme.strings.pause,
-                    onClick = {
-                        viewModel.pause(!state.isPaused)
-                    },
-                )
+                PlayPauseButton()
             }
             Box(
                 modifier = Modifier
