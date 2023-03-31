@@ -86,18 +86,14 @@ internal fun ToSettings(onBack: () -> Unit) {
     val width = LocalConfiguration.current.screenWidthDp.dp
     val animatable = remember { Animatable(initialValue = 1f) }
     val delay = 250.milliseconds
-//    val delay = 2_000.milliseconds
     var back by remember { mutableStateOf(false) }
     val targetValue = if (back) 1f else 0f
-//    val easing = if (back) FastOutSlowInEasing else LinearOutSlowInEasing
-    val easing = LinearEasing
-//    val easing = FastOutSlowInEasing
     LaunchedEffect(back) {
         animatable.animateTo(
             targetValue = targetValue,
             animationSpec = tween(
                 durationMillis = delay.inWholeMilliseconds.toInt(),
-                easing = easing
+                easing = LinearEasing
             ),
         )
     }
@@ -157,7 +153,26 @@ internal fun MainScreen() {
             println("$TAG: start: ${startState.value}")
             var progress: Float? by rememberSaveable { mutableStateOf(null) }
             println("$TAG: progress: $progress")
-            val delay = 250.milliseconds
+            val delay = 64.milliseconds
+            val animationSpec = if (progress == null || progress == 0f) {
+                snap<Float>()
+            } else {
+                tween(
+                    durationMillis = delay.inWholeMilliseconds.toInt(),
+                    easing = LinearEasing
+                )
+            }
+            val animatable = remember { Animatable(initialValue = 0f) }
+            LaunchedEffect(progress, isPaused) {
+                if (isPaused) {
+                    if (animatable.isRunning) animatable.stop()
+                } else {
+                    animatable.animateTo(
+                        targetValue = progress ?: 0f,
+                        animationSpec = animationSpec,
+                    )
+                }
+            }
             LaunchedEffect(value, index, isPaused) {
                 println("$TAG: launched effect...")
                 if (!isPaused) {
@@ -215,29 +230,7 @@ internal fun MainScreen() {
                 ),
                 text = text
             )
-            val animationSpec = if (progress == null || progress == 0f) {
-                snap<Float>()
-            } else {
-                tween(
-                    durationMillis = delay.inWholeMilliseconds.toInt(),
-                    easing = LinearEasing
-                )
-            }
-            val animated by animateFloatAsState(
-                targetValue = progress ?: 0f,
-                animationSpec = animationSpec
-            )
-//            val animatable = remember { Animatable(initialValue = 0f) }
-//            LaunchedEffect(progress) {
-//                if (progress == 0f) animatable.stop()
-//                animatable.animateTo(
-//                    targetValue = progress ?: 0f,
-//                    animationSpec = tween(
-//                        durationMillis = delay.inWholeMilliseconds.toInt(),
-//                        easing = LinearEasing
-//                    ),
-//                )
-//            }
+            val animated = animatable.value
             ProgressBar(value = animated)
             Text(
                 value = if (isPaused) App.Theme.strings.play else App.Theme.strings.pause,
