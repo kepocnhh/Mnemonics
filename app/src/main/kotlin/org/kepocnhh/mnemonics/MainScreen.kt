@@ -1,5 +1,6 @@
 package org.kepocnhh.mnemonics
 
+import android.content.res.Configuration
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -93,7 +95,12 @@ private fun MutableState<Long?>.getOrSet(newValue: Long): Long {
 internal fun ToSettings(onBack: () -> Unit) {
     val TAG = "[ToSettings]"
     println("$TAG:\n\tcompose...")
-    val width = LocalConfiguration.current.screenWidthDp.dp
+    val orientation = LocalConfiguration.current.orientation
+    val initialWidth = LocalConfiguration.current.screenWidthDp.dp
+    val targetWidth = when (orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> initialWidth / 2
+        else -> initialWidth
+    }
     val animatable = remember { Animatable(initialValue = 1f) }
     val delay = 250.milliseconds
     var back by remember { mutableStateOf(false) }
@@ -118,19 +125,22 @@ internal fun ToSettings(onBack: () -> Unit) {
             .clickable(
                 interactionSource = MutableInteractionSource(),
                 indication = null,
-            ) {},
+            ) {
+                // todo back?
+            },
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    App.Theme.colors.background.copy(alpha = 1f - animatable.value),
+                    App.Theme.colors.background.copy(alpha = (1f - animatable.value) * 0.75f),
                 ),
         )
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .offset(x = width * animatable.value),
+                .fillMaxHeight()
+                .width(targetWidth)
+                .offset(x = initialWidth * animatable.value + (initialWidth - targetWidth)),
         ) {
             SettingsScreen(
                 onBack = {
