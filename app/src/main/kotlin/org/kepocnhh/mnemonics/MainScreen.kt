@@ -203,7 +203,7 @@ internal fun MainScreen() {
                     easing = LinearEasing
                 )
             }
-            val animatable = remember { Animatable(initialValue = 0f) }
+            val animatable = remember { Animatable(initialValue = progress ?: 0f) }
             LaunchedEffect(progress, isPaused) {
                 if (isPaused) {
                     if (animatable.isRunning) animatable.stop()
