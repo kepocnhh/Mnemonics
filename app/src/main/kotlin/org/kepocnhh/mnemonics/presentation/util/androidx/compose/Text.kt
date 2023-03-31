@@ -58,7 +58,6 @@ internal fun Text(
     align: TextAlign = TextAlign.Center
 ) {
     BasicText(
-        modifier = Modifier.fillMaxWidth(),
         style = TextStyle(
             fontFamily = family,
             fontSize = size,

@@ -2,8 +2,10 @@ package org.kepocnhh.mnemonics.presentation.util.androidx.compose
 
 import android.os.Build
 import android.view.WindowInsets
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -40,4 +42,13 @@ internal fun WindowInsets.toInsets(density: Float) : Insets {
 @Composable
 internal fun WindowInsets.toInsets(density: Density = LocalDensity.current) : Insets {
     return toInsets(density = density.density)
+}
+
+internal fun Modifier.padding(insets: Insets): Modifier {
+    return padding(
+        bottom = insets.bottom,
+        end = insets.end,
+        start = insets.start,
+        top = insets.top,
+    )
 }

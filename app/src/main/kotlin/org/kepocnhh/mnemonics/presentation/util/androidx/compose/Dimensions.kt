@@ -10,5 +10,6 @@ internal data class Dimensions(
     val toolbar: Dp,
     val button: Dp,
     val icon: Dp,
+    val progress: Dp,
     val text: TextUnit,
 )

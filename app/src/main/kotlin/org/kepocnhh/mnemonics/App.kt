@@ -75,6 +75,7 @@ internal class App : Application() {
                     toolbar = 56.dp,
                     button = 56.dp,
                     icon = 24.dp,
+                    progress = 8.dp,
                     text = 14.sp,
                 ),
                 content = content,

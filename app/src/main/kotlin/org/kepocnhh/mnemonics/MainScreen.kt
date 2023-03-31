@@ -1,6 +1,7 @@
 package org.kepocnhh.mnemonics
 
 import android.content.res.Configuration
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.snap
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -63,6 +66,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.padding
 
 private val times = flow {
     while (true) {
@@ -84,22 +88,88 @@ private fun times(
 }
 
 @Composable
-private fun ProgressBar(
-    value: Float
-) {
-    val orientation = LocalConfiguration.current.orientation
+private fun ProgressBar(state: MainViewModel.State) {
+    val animatable = remember { Animatable(initialValue = state.progress) }
+    val duration = MainViewModel.time - MainViewModel.time * state.progress.toDouble()
+    val animationSpec = tween<Float>(
+        durationMillis = duration.inWholeMilliseconds.toInt(),
+        easing = LinearEasing
+    )
+    LaunchedEffect(state.number) {
+        animatable.snapTo(state.progress)
+    }
+    LaunchedEffect(state.number, state.isPaused) {
+        if (state.isPaused) {
+            if (animatable.isRunning) animatable.stop()
+        } else {
+            animatable.animateTo(
+                targetValue = 1f,
+                animationSpec = animationSpec,
+            )
+        }
+    }
+    ProgressBarHorizontal(value = animatable.value)
+}
+
+@Composable
+private fun ProgressBarHorizontal(value: Float) {
     Box(
         modifier = Modifier
-            .background(App.Theme.colors.foreground)
-            .height(8.dp)
-            .padding(end = App.Theme.dimensions.insets.end)
-            .let { modifier ->
-                when (orientation) {
-                    Configuration.ORIENTATION_LANDSCAPE -> modifier.fillMaxHeight(value)
-                    else -> modifier.fillMaxWidth(value)
-                }
-            }
-    )
+            .height(App.Theme.dimensions.progress)
+            .fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .background(App.Theme.colors.foreground)
+                .fillMaxHeight()
+                .fillMaxWidth(value)
+        )
+    }
+}
+
+@Composable
+private fun ProgressBarVertical(
+    value: Float,
+    foreground: Color = App.Theme.colors.foreground,
+    background: Color = foreground.copy(alpha = 0.5f),
+) {
+    Box(
+        modifier = Modifier
+            .width(App.Theme.dimensions.progress)
+            .background(background)
+            .fillMaxHeight()
+    ) {
+        Box(
+            modifier = Modifier
+                .background(foreground)
+                .fillMaxWidth()
+                .fillMaxHeight(value)
+        )
+    }
+}
+
+@Composable
+private fun PlayPauseButton(
+    @DrawableRes icon: Int,
+    contentDescription: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(App.Theme.dimensions.button * 2)
+            .clickable {
+                onClick()
+            },
+    ) {
+        Image(
+            modifier = Modifier
+                .size(App.Theme.dimensions.icon)
+                .align(Alignment.Center),
+            painter = painterResource(icon),
+            contentDescription = contentDescription,
+            colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
+        )
+    }
 }
 
 private fun MutableState<Long?>.getOrSet(newValue: Long): Long {
@@ -206,24 +276,21 @@ private fun MainScreenPortrait() {
         val TAG = "[MS|P|${hashCode()}]"
         val viewModel = App.viewModel<MainViewModel>()
         val state by viewModel.state.collectAsState()
-//        println("$TAG: number: ${state.number}")
         var toSettings by rememberSaveable { mutableStateOf(false) }
-        val startState = rememberSaveable { mutableStateOf<Long?>(null) }
-        val time = 3.seconds
-//        val time = 6.seconds
-        LaunchedEffect(state.number, state.isPaused) {
-            viewModel.nextNumber()
-        }
         Toolbar(
             toSettings = {
                 viewModel.pause(true)
                 toSettings = true
             }
         )
+        LaunchedEffect(state.number, state.isPaused) {
+            viewModel.nextNumber()
+        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.Center)
+                .align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val text = when (val number = state.number) {
                 null -> "..."
@@ -236,70 +303,19 @@ private fun MainScreenPortrait() {
                     }
                 }
             } // todo theme strings
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .wrapContentHeight(Alignment.CenterVertically)
-            ) {
-                Text(
-                    value = text,
-                    size = 128.sp,
-                    family = FontFamily.Monospace
-                )
-            }
-            val animatable = remember { Animatable(initialValue = state.progress) }
-//            val animationSpec = if (state.progress > 0) {
-//                tween(
-//                    durationMillis = MainViewModel.time.inWholeMilliseconds.toInt(), // todo
-//                    easing = LinearEasing
-//                )
-//            } else {
-//                snap<Float>()
-//            }
-            val duration = MainViewModel.time - MainViewModel.time * state.progress.toDouble()
-            val animationSpec = tween<Float>(
-                durationMillis = duration.inWholeMilliseconds.toInt(),
-                easing = LinearEasing
+            Text(
+                value = text,
+                size = 128.sp,
+                family = FontFamily.Monospace
             )
-            LaunchedEffect(state.number) {
-                animatable.snapTo(0f)
-            }
-            LaunchedEffect(state.number, state.isPaused) {
-                if (state.isPaused) {
-                    if (animatable.isRunning) animatable.stop()
-                } else {
-                    animatable.animateTo(
-                        targetValue = 1f,
-                        animationSpec = animationSpec,
-                    )
-                }
-            }
-            ProgressBar(value = animatable.value)
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .wrapContentHeight(Alignment.CenterVertically)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(App.Theme.dimensions.button)
-                        .clickable {
-                            viewModel.pause(!state.isPaused)
-                        },
-                ) {
-                    Image(
-                        modifier = Modifier
-                            .size(App.Theme.dimensions.icon)
-                            .align(Alignment.Center),
-                        painter = painterResource(
-                            id = if (state.isPaused) R.drawable.play else R.drawable.pause
-                        ),
-                        contentDescription = if (state.isPaused) App.Theme.strings.play else App.Theme.strings.pause,
-                        colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
-                    )
-                }
-            }
+            ProgressBar(state)
+            PlayPauseButton(
+                icon = if (state.isPaused) R.drawable.play else R.drawable.pause,
+                contentDescription = if (state.isPaused) App.Theme.strings.play else App.Theme.strings.pause,
+                onClick = {
+                    viewModel.pause(!state.isPaused)
+                },
+            )
         }
         if (toSettings) {
             ToSettings(
@@ -314,15 +330,66 @@ private fun MainScreenPortrait() {
 @Composable
 private fun MainScreenLandscape() {
     Box(Modifier.fillMaxSize()) {
-        var isPaused by rememberSaveable { mutableStateOf(true) }
+        val viewModel = App.viewModel<MainViewModel>()
+        val state by viewModel.state.collectAsState()
         var toSettings by rememberSaveable { mutableStateOf(false) }
         Toolbar(
             toSettings = {
-                isPaused = true
+                viewModel.pause(true)
                 toSettings = true
             }
         )
-        TODO()
+        LaunchedEffect(state.number, state.isPaused) {
+            viewModel.nextNumber()
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(App.Theme.dimensions.insets)
+        ) {
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .align(Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val text = when (val number = state.number) {
+                    null -> "..."
+                    -100 -> " 00"
+                    else -> {
+                        if (number < 0) {
+                            " %02d".format(number.absoluteValue)
+                        } else {
+                            "%03d".format(number)
+                        }
+                    }
+                } // todo theme strings
+                Text(
+                    value = text,
+                    size = 128.sp,
+                    family = FontFamily.Monospace
+                )
+                PlayPauseButton(
+                    icon = if (state.isPaused) R.drawable.play else R.drawable.pause,
+                    contentDescription = if (state.isPaused) App.Theme.strings.play else App.Theme.strings.pause,
+                    onClick = {
+                        viewModel.pause(!state.isPaused)
+                    },
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(App.Theme.dimensions.button * 2)
+                    .padding(
+                        start = App.Theme.dimensions.button,
+                        end = App.Theme.dimensions.button,
+                    )
+                    .wrapContentHeight(Alignment.CenterVertically)
+            ) {
+                ProgressBar(state)
+            }
+        }
         if (toSettings) {
             ToSettings(
                 onBack = {
@@ -339,149 +406,5 @@ internal fun MainScreen() {
     when (orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> MainScreenLandscape()
         else -> MainScreenPortrait()
-    }
-    return
-    Box(Modifier.fillMaxSize()) {
-        val TAG = "[MainScreen|${hashCode()}]"
-        println("$TAG:\n\tcompose...")
-        var isPaused by rememberSaveable { mutableStateOf(true) }
-        var toSettings by rememberSaveable { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center)
-                .padding(end = App.Theme.dimensions.insets.end)
-        ) {
-            println("$TAG: is paused: $isPaused")
-            var index: Int by remember { mutableStateOf(0) }
-            println("$TAG: index: $index")
-            var value: Int? by rememberSaveable { mutableStateOf(null) }
-            println("$TAG: value: $value")
-            val startState = rememberSaveable { mutableStateOf<Long?>(null) }
-            val max = 6.seconds
-            println("$TAG: start: ${startState.value}")
-            var progress: Float? by rememberSaveable { mutableStateOf(null) }
-            println("$TAG: progress: $progress")
-            val delay = 64.milliseconds
-            val animationSpec = if (progress == null || progress == 0f) {
-                snap<Float>()
-            } else {
-                tween(
-                    durationMillis = delay.inWholeMilliseconds.toInt(),
-                    easing = LinearEasing
-                )
-            }
-            val animatable = remember { Animatable(initialValue = progress ?: 0f) }
-            LaunchedEffect(progress, isPaused) {
-                if (isPaused) {
-                    if (animatable.isRunning) animatable.stop()
-                } else {
-                    animatable.animateTo(
-                        targetValue = progress ?: 0f,
-                        animationSpec = animationSpec,
-                    )
-                }
-            }
-            /*
-            LaunchedEffect(value, index, isPaused) {
-                println("$TAG: launched effect...")
-                if (!isPaused) {
-                    val next = async(Dispatchers.Default) {
-                        nextNumber(random, 100, value)
-                    }
-                    if (value != null) {
-                        val start = startState.getOrSet(System.nanoTime()).nanoseconds
-                        if (progress == null) {
-                            progress = 0f
-                        }
-                        withContext(Dispatchers.Default) {
-                            while (isActive && !isPaused) {
-                                val now = System.nanoTime().nanoseconds
-                                val duration = (now - start) / max
-                                if (duration < 1.0) {
-                                    progress = duration.toFloat()
-                                    delay(delay)
-                                } else {
-                                    progress = null
-                                    startState.value = null
-                                    break
-                                }
-                            }
-                        }
-                    }
-                    if (!isPaused) {
-                        index++
-                        println("$TAG: effect index: $index")
-                        value = next.await()
-                        println("$TAG: effect value: $value")
-                    }
-                }
-            }
-            */
-            val number = value
-            val text = when (number) {
-                null -> "..."
-                -100 -> " 00"
-                else -> {
-                    if (number < 0) {
-                        " %02d".format(number.absoluteValue)
-                    } else {
-                        "%03d".format(number)
-                    }
-                }
-            }
-            BasicText(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                style = TextStyle(
-                    fontSize = 128.sp,
-                    fontFamily = FontFamily.Monospace,
-                    color = App.Theme.colors.foreground,
-                    textAlign = TextAlign.Center
-                ),
-                text = text
-            )
-            ProgressBar(value = animatable.value)
-            Spacer(
-                modifier = Modifier
-                    .height(App.Theme.dimensions.button)
-            )
-            Box(
-                modifier = Modifier
-                    .size(App.Theme.dimensions.button)
-                    .align(Alignment.CenterHorizontally)
-                    .clickable {
-                        println("$TAG: on click...")
-                        if (isPaused) {
-                            startState.value = progress
-                                ?.let {
-                                    System.nanoTime() - it * max.inWholeNanoseconds
-                                }
-                                ?.toLong()
-                            isPaused = false
-                        } else {
-                            isPaused = true
-                        }
-                    },
-            ) {
-                Image(
-                    modifier = Modifier
-                        .size(App.Theme.dimensions.icon)
-                        .align(Alignment.Center),
-                    painter = painterResource(
-                        id = if (isPaused) R.drawable.play else R.drawable.pause
-                    ),
-                    contentDescription = if (isPaused) App.Theme.strings.play else App.Theme.strings.pause,
-                    colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
-                )
-            }
-        }
-        if (toSettings) {
-            ToSettings(
-                onBack = {
-                    toSettings = false
-                }
-            )
-        }
     }
 }
