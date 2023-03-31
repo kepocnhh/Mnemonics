@@ -9,6 +9,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -73,7 +74,8 @@ internal class App : Application() {
                     insets = LocalView.current.rootWindowInsets.toInsets(),
                     toolbar = 56.dp,
                     button = 56.dp,
-                    icon = 24.dp
+                    icon = 24.dp,
+                    text = 14.sp,
                 ),
                 content = content,
             )
@@ -95,6 +97,7 @@ internal class App : Application() {
                 )
             )
         )
+        _injecion = injection
         _viewModelFactory = object : ViewModelProvider.Factory {
             override fun <U : ViewModel> create(modelClass: Class<U>): U {
                 return modelClass.getConstructor(Injection::class.java).newInstance(injection)
@@ -104,10 +107,16 @@ internal class App : Application() {
 
     companion object {
         private var _viewModelFactory: ViewModelProvider.Factory? = null
+        private var _injecion: Injection? = null
 
         @Composable
         inline fun <reified T : ViewModel> viewModel(): T {
             return viewModel(factory = checkNotNull(_viewModelFactory))
+        }
+
+        @Composable
+        inline fun <reified T : ViewModel> viewModel(builder: (Injection) -> T): T {
+            return builder(checkNotNull(_injecion))
         }
     }
 }
