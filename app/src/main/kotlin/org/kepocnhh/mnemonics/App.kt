@@ -5,36 +5,43 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import org.kepocnhh.mnemonics.foundation.entity.ColorsType
-import org.kepocnhh.mnemonics.foundation.entity.ThemeState
-import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Colors
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
+import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
+import org.kepocnhh.mnemonics.foundation.entity.ThemeState
 import org.kepocnhh.mnemonics.foundation.provider.Injection
 import org.kepocnhh.mnemonics.foundation.provider.coroutine.Contexts
 import org.kepocnhh.mnemonics.implementation.provider.data.local.FinalLocalDataProvider
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Colors
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Dimensions
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Strings
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.strings.En
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.strings.Ru
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.toInsets
 
 internal class App : Application() {
     object Theme {
         private val LocalColors = staticCompositionLocalOf<Colors> { error("no colors") }
+        private val LocalDimensions = staticCompositionLocalOf<Dimensions> { error("no dimensions") }
         private val LocalStrings = staticCompositionLocalOf<Strings> { error("no strings") }
 
         val colors: Colors
             @Composable
             @ReadOnlyComposable
             get() = LocalColors.current
+
+        val dimensions: Dimensions
+            @Composable
+            @ReadOnlyComposable
+            get() = LocalDimensions.current
 
         val strings: Strings
             @Composable
@@ -63,6 +70,14 @@ internal class App : Application() {
                         }
                     }
                 },
+                LocalDimensions provides Dimensions(
+                    insets = LocalView.current.rootWindowInsets.toInsets(),
+                    toolbar = 56.dp,
+                    button = 56.dp,
+                    icon = 24.dp,
+                    progress = 8.dp,
+                    text = 14.sp,
+                ),
                 content = content,
             )
         }
@@ -83,6 +98,7 @@ internal class App : Application() {
                 )
             )
         )
+        _injecion = injection
         _viewModelFactory = object : ViewModelProvider.Factory {
             override fun <U : ViewModel> create(modelClass: Class<U>): U {
                 return modelClass.getConstructor(Injection::class.java).newInstance(injection)
@@ -92,10 +108,16 @@ internal class App : Application() {
 
     companion object {
         private var _viewModelFactory: ViewModelProvider.Factory? = null
+        private var _injecion: Injection? = null
 
         @Composable
         inline fun <reified T : ViewModel> viewModel(): T {
             return viewModel(factory = checkNotNull(_viewModelFactory))
+        }
+
+        @Composable
+        inline fun <reified T : ViewModel> viewModel(builder: (Injection) -> T): T {
+            return builder(checkNotNull(_injecion))
         }
     }
 }
