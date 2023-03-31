@@ -1,30 +1,25 @@
 package org.kepocnhh.mnemonics
 
 import android.app.Application
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import org.kepocnhh.mnemonics.foundation.entity.ColorsType
-import org.kepocnhh.mnemonics.foundation.entity.ThemeState
-import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Colors
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
+import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
+import org.kepocnhh.mnemonics.foundation.entity.ThemeState
 import org.kepocnhh.mnemonics.foundation.provider.Injection
 import org.kepocnhh.mnemonics.foundation.provider.coroutine.Contexts
 import org.kepocnhh.mnemonics.implementation.provider.data.local.FinalLocalDataProvider
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Colors
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Dimensions
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Strings
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.strings.En
@@ -51,8 +46,6 @@ internal class App : Application() {
             @Composable
             @ReadOnlyComposable
             get() = LocalStrings.current
-
-        val NoneMutableInteractionSource = MutableInteractionSource()
 
         @Composable
         fun Composition(

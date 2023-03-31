@@ -3,10 +3,11 @@ package org.kepocnhh.mnemonics.presentation.util.androidx.compose.foundation
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.Modifier
-import org.kepocnhh.mnemonics.App
+
+internal val NoneMutableInteractionSource = MutableInteractionSource()
 
 internal fun Modifier.onClick(
-    interactionSource: MutableInteractionSource = App.Theme.NoneMutableInteractionSource,
+    interactionSource: MutableInteractionSource = NoneMutableInteractionSource,
     onClick: () -> Unit
 ): Modifier {
     return clickable(
