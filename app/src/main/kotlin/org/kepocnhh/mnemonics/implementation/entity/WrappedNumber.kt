@@ -8,10 +8,9 @@ private class WrappedNumberImpl(
     override val rank: Int
 ) : WrappedNumber {
     override fun toString(): String {
-        val sum = getSumOfGeometricSeries(n = rank)
         for (i in 1 .. rank) {
-            if (raw < getSumOfGeometricSeries(n = i) - sum) {
-                val formatted = raw + sum - getSumOfGeometricSeries(n = i - 1)
+            if (raw < -getSumOfGeometricSeries(n = rank, m = i)) {
+                val formatted = raw + getSumOfGeometricSeries(n = rank, m = i - 1)
                 return "%${rank}s".format("%0${i}d".format(formatted.toInt()))
             }
         }
@@ -20,12 +19,18 @@ private class WrappedNumberImpl(
 }
 
 /**
- * a*r.pow(1) + a*r.pow(2) + a*r.pow(3) + a*r.pow(4) + ... + a*r.pow(n)
- * 1*10       + 1*100      + 1*1_000    + 1*10_000   + ... + 1*10.pow(n)
+ * a*r.pow(n) + a*r.pow(n - 1) + ... + a*r.pow(m - 1) + a*r.pow(m)
  * https://en.wikipedia.org/wiki/Geometric_series
  */
-private fun getSumOfGeometricSeries(a: Int = 1, r: Double = 10.0, n: Int): Double {
-    return r * a * (1.0 - r.pow(n)) / (1.0 - r)
+private fun getSumOfGeometricSeries(
+    a: Int = 1,
+    r: Double = 10.0,
+    m: Int = 0,
+    n: Int,
+): Double {
+    require(m >= 0)
+    require(n >= m)
+    return r * a * (r.pow(m) - r.pow(n)) / (1.0 - r)
 }
 
 private fun getRange(rank: Int): IntRange {

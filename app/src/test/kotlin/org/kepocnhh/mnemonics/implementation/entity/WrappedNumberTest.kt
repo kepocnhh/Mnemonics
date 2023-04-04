@@ -5,6 +5,20 @@ import org.junit.Test
 
 internal class WrappedNumberTest {
     @Test
+    fun toStringRank1Test() {
+        val rank = 1
+        mapOf(
+            -10 to "0",
+            -9  to "1",
+            -2  to "8",
+            -1  to "9",
+        ).forEach { (raw, expected) ->
+            val number = raw.wrapped(rank = rank)
+            assertEquals(expected, number.toString())
+        }
+    }
+
+    @Test
     fun toStringRank2Test() {
         val rank = 2
         mapOf(
