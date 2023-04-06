@@ -39,6 +39,10 @@ internal class WrappedNumberTest {
     fun toStringRank3Test() {
         val rank = 3
         mapOf(
+//            0    to "  0",
+//            10   to " 00",
+//            100  to "000",
+//            1099 to "999",
             -1110 to "  0",
             -1109 to "  1",
             -1101 to "  9",
@@ -54,6 +58,7 @@ internal class WrappedNumberTest {
             -872  to "128",
             -744  to "256",
             -488  to "512",
+            -99   to "901",
             -1    to "999",
         ).forEach { (raw, expected) ->
             val number = raw.wrapped(rank = rank)
