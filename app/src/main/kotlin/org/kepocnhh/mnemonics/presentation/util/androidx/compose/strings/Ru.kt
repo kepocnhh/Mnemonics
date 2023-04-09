@@ -16,4 +16,6 @@ internal val Ru = Strings(
     settings = "настройки",
     range = "интервал",
     ok = "ок",
+    rangeFrom = "от:",
+    rangeTo = "до:"
 )

@@ -16,4 +16,6 @@ internal val En = Strings(
     settings = "settings",
     range = "range",
     ok = "ok",
+    rangeFrom = "from:",
+    rangeTo = "to:",
 )

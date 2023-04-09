@@ -1,7 +1,11 @@
 package org.kepocnhh.mnemonics
 
+import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.RippleDrawable
+import android.graphics.drawable.StateListDrawable
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -21,11 +25,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,11 +46,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
 import org.kepocnhh.mnemonics.implementation.module.theme.ThemeViewModel
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Insets
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.padding
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.ui.unit.toPx
 
 @Composable
@@ -161,10 +169,11 @@ private fun Spinner(
     modifier: Modifier,
     values: List<String>,
     index: Int,
-    itemHeight: Int,
     backgroundColor: Int,
-    textColor: Int,
+    foregroundColor: Int,
     textSize: Float,
+    paddingTop: Int,
+    paddingBottom: Int,
     onChange: (Int) -> Unit
 ) {
     AndroidView(
@@ -173,6 +182,7 @@ private fun Spinner(
             Spinner(context).also {
                 it.background = null
                 it.setPadding(0, 0, 0, 0)
+                it.setPopupBackgroundDrawable(ColorDrawable(backgroundColor))
             }
         },
         update = { view ->
@@ -198,12 +208,36 @@ private fun Spinner(
                     val result: TextView = convertView as? TextView ?: TextView(view.context).also {
                         it.layoutParams = ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
-                            itemHeight
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+//                            itemHeight,
                         )
-                        it.background = ColorDrawable(backgroundColor)
+//                        it.background = ColorDrawable(backgroundColor)
+//                        it.background = RippleDrawable(
+//                            ColorStateList.valueOf(backgroundColor),
+//                            ColorDrawable(backgroundColor),
+//                            null,
+//                        )
+//                        it.foreground = TypedValue().let { value ->
+//                            view.context.theme.resolveAttribute(android.R.attr.selectableItemBackground, value, true)
+//                            ContextCompat.getDrawable(view.context, value.resourceId)
+//                        }
+                        it.background = StateListDrawable().also { states ->
+                            states.addState(
+                                intArrayOf(android.R.attr.state_pressed),
+                                ColorDrawable(foregroundColor).also { drawable ->
+                                    drawable.alpha = (256 * 0.25f).toInt()
+                                },
+                            )
+                            states.addState(
+                                intArrayOf(),
+                                ColorDrawable(backgroundColor),
+                            )
+                        }
+                        it.foreground = null
+                        it.setPadding(0, paddingTop, 0, paddingBottom)
                         it.gravity = Gravity.CENTER
                         it.typeface = Typeface.MONOSPACE
-                        it.setTextColor(textColor)
+                        it.setTextColor(foregroundColor)
                         it.textSize = textSize
                     }
                     result.text = values[position]
@@ -241,39 +275,46 @@ private fun DialogRange(onDismiss: () -> Unit) {
         println("max: $maxIndex")
         Column(modifier = Modifier.background(App.Theme.colors.background)) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp),
                 verticalAlignment = Alignment.Bottom,
             ) {
                 Text(
-                    padding = Insets(bottom = 0.dp, end = 0.dp, start = 8.dp, top = 0.dp), // todo
-                    value = "from:", // todo
+                    padding = Insets.empty.copy(bottom = 8.dp),
+                    value = App.Theme.strings.rangeFrom,
                     align = TextAlign.Start,
                 )
+                Spacer(modifier = Modifier.width(4.dp))
                 Spinner(
                     modifier = Modifier.weight(1f),
                     values = values.subList(0, maxIndex),
                     index = minIndex,
-                    itemHeight = App.Theme.dimensions.button.toPx().toInt(),
                     backgroundColor = App.Theme.colors.background.toArgb(),
-                    textColor = App.Theme.colors.foreground.toArgb(),
+                    foregroundColor = App.Theme.colors.foreground.toArgb(),
                     textSize = App.Theme.dimensions.text.value * 2,
+                    paddingTop = 8.dp.toPx().toInt(),
+                    paddingBottom = 8.dp.toPx().toInt(),
                     onChange = { index ->
                         minIndex = index
                     },
                 )
+                Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    padding = Insets(bottom = 0.dp, end = 0.dp, start = 8.dp, top = 0.dp), // todo
-                    value = "to:", // todo
+                    padding = Insets.empty.copy(bottom = 8.dp),
+                    value = App.Theme.strings.rangeTo,
                     align = TextAlign.Start,
                 )
+                Spacer(modifier = Modifier.width(4.dp))
                 Spinner(
                     modifier = Modifier.weight(1f),
                     values = values.subList(minIndex + 1, values.size),
                     index = maxIndex - minIndex - 1,
-                    itemHeight = App.Theme.dimensions.button.toPx().toInt(),
                     backgroundColor = App.Theme.colors.background.toArgb(),
-                    textColor = App.Theme.colors.foreground.toArgb(),
+                    foregroundColor = App.Theme.colors.foreground.toArgb(),
                     textSize = App.Theme.dimensions.text.value * 2,
+                    paddingTop = 8.dp.toPx().toInt(),
+                    paddingBottom = 8.dp.toPx().toInt(),
                     onChange = { index ->
                         maxIndex = index + minIndex + 1
                     },

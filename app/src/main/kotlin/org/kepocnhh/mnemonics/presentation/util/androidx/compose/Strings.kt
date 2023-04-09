@@ -17,4 +17,6 @@ internal class Strings(
     val settings: String,
     val range: String,
     val ok: String,
+    val rangeFrom: String,
+    val rangeTo: String,
 )
