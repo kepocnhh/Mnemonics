@@ -1,6 +1,5 @@
 package org.kepocnhh.mnemonics
 
-import android.widget.NumberPicker
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,7 +25,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
@@ -97,51 +95,6 @@ private fun DialogLanguage(onDismiss: () -> Unit) {
             )
         }
     }
-}
-
-@Composable
-private fun NumberPicker(
-    modifier: Modifier,
-    min: Int,
-    max: Int,
-    value: Int,
-    displayedValues: Array<String>? = null,
-    wrapSelectorWheel: Boolean = false,
-    onChange: (Int) -> Unit
-) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            NumberPicker(context).also {
-                it.minValue = min
-                it.maxValue = max
-                it.value = value
-                it.displayedValues = displayedValues
-                it.wrapSelectorWheel = wrapSelectorWheel
-                it.setOnValueChangedListener { _, _, value ->
-                    onChange(value)
-                }
-            }
-        }
-    )
-}
-
-@Composable
-private fun Picker(
-    modifier: Modifier,
-    values: List<String>,
-    index: Int = 0,
-    onChange: (Int) -> Unit
-) {
-    println("values: $values")
-    NumberPicker(
-        modifier = modifier,
-        min = 0,
-        max = values.lastIndex,
-        value = index,
-        displayedValues = values.toTypedArray(),
-        onChange = onChange
-    )
 }
 
 @Composable
