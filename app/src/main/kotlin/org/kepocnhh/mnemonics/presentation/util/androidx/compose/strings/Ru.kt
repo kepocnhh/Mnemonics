@@ -14,4 +14,6 @@ internal val Ru = Strings(
     play = "продолжить",
     ru = "русский",
     settings = "настройки",
+    range = "интервал",
+    ok = "ок",
 )

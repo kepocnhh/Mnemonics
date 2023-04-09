@@ -52,12 +52,14 @@ internal fun Text(
 @Composable
 internal fun Text(
     value: String,
+    padding: Insets = Insets.empty,
     size: TextUnit = App.Theme.dimensions.text,
     family: FontFamily = FontFamily.Default,
     color: Color = App.Theme.colors.foreground,
     align: TextAlign = TextAlign.Center
 ) {
     BasicText(
+        modifier = Modifier.padding(padding),
         style = TextStyle(
             fontFamily = family,
             fontSize = size,

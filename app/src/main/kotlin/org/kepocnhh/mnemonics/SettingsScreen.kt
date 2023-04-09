@@ -1,6 +1,20 @@
 package org.kepocnhh.mnemonics
 
+import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.BaseAdapter
+import android.widget.NumberPicker
+import android.widget.SimpleAdapter
+import android.widget.Spinner
+import android.widget.SpinnerAdapter
+import android.widget.TextView
 import androidx.activity.compose.BackHandler
+import androidx.appcompat.widget.AppCompatSpinner
+import androidx.appcompat.widget.MenuPopupWindow.MenuDropDownListView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,12 +34,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
 import org.kepocnhh.mnemonics.implementation.module.theme.ThemeViewModel
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Insets
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.ui.unit.toPx
 
 @Composable
 private fun DialogColors(onDismiss: () -> Unit) {
@@ -92,6 +112,185 @@ private fun DialogLanguage(onDismiss: () -> Unit) {
 }
 
 @Composable
+private fun NumberPicker(
+    modifier: Modifier,
+    min: Int,
+    max: Int,
+    value: Int,
+    displayedValues: Array<String>? = null,
+    wrapSelectorWheel: Boolean = false,
+    onChange: (Int) -> Unit
+) {
+    AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            NumberPicker(context).also {
+                it.minValue = min
+                it.maxValue = max
+                it.value = value
+                it.displayedValues = displayedValues
+                it.wrapSelectorWheel = wrapSelectorWheel
+                it.setOnValueChangedListener { _, _, value ->
+                    onChange(value)
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun Picker(
+    modifier: Modifier,
+    values: List<String>,
+    index: Int = 0,
+    onChange: (Int) -> Unit
+) {
+    println("values: $values")
+    NumberPicker(
+        modifier = modifier,
+        min = 0,
+        max = values.lastIndex,
+        value = index,
+        displayedValues = values.toTypedArray(),
+        onChange = onChange
+    )
+}
+
+@Composable
+private fun Spinner(
+    modifier: Modifier,
+    values: List<String>,
+    index: Int,
+    itemHeight: Int,
+    backgroundColor: Int,
+    textColor: Int,
+    textSize: Float,
+    onChange: (Int) -> Unit
+) {
+    AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            Spinner(context).also {
+                it.background = null
+                it.setPadding(0, 0, 0, 0)
+            }
+        },
+        update = { view ->
+            view.onItemSelectedListener = null
+            view.adapter = object: BaseAdapter() {
+                override fun getCount(): Int {
+                    return values.size
+                }
+
+                override fun getItem(position: Int): Any {
+                    return values[position]
+                }
+
+                override fun getItemId(position: Int): Long {
+                    return position.toLong()
+                }
+
+                override fun getView(
+                    position: Int,
+                    convertView: View?,
+                    parent: ViewGroup?
+                ): View {
+                    val result: TextView = convertView as? TextView ?: TextView(view.context).also {
+                        it.layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            itemHeight
+                        )
+                        it.background = ColorDrawable(backgroundColor)
+                        it.gravity = Gravity.CENTER
+                        it.typeface = Typeface.MONOSPACE
+                        it.setTextColor(textColor)
+                        it.textSize = textSize
+                    }
+                    result.text = values[position]
+                    return result
+                }
+            }
+            view.setSelection(index)
+            view.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    onChange(position)
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>?) {
+                    TODO("Not yet implemented: onNothingSelected")
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun DialogRange(onDismiss: () -> Unit) {
+    Dialog(
+        onDismissRequest = onDismiss,
+    ) {
+        val values = listOf("a", "b", "c", "d", "e", "f", "g")
+        var minIndex by remember { mutableStateOf(0) }
+        var maxIndex by remember { mutableStateOf(values.lastIndex) }
+        println("min: $minIndex")
+        println("max: $maxIndex")
+        Column(modifier = Modifier.background(App.Theme.colors.background)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                Text(
+                    padding = Insets(bottom = 0.dp, end = 0.dp, start = 8.dp, top = 0.dp), // todo
+                    value = "from:", // todo
+                    align = TextAlign.Start,
+                )
+                Spinner(
+                    modifier = Modifier.weight(1f),
+                    values = values.subList(0, maxIndex),
+                    index = minIndex,
+                    itemHeight = App.Theme.dimensions.button.toPx().toInt(),
+                    backgroundColor = App.Theme.colors.background.toArgb(),
+                    textColor = App.Theme.colors.foreground.toArgb(),
+                    textSize = App.Theme.dimensions.text.value * 2,
+                    onChange = { index ->
+                        minIndex = index
+                    },
+                )
+                Text(
+                    padding = Insets(bottom = 0.dp, end = 0.dp, start = 8.dp, top = 0.dp), // todo
+                    value = "to:", // todo
+                    align = TextAlign.Start,
+                )
+                Spinner(
+                    modifier = Modifier.weight(1f),
+                    values = values.subList(minIndex + 1, values.size),
+                    index = maxIndex - minIndex - 1,
+                    itemHeight = App.Theme.dimensions.button.toPx().toInt(),
+                    backgroundColor = App.Theme.colors.background.toArgb(),
+                    textColor = App.Theme.colors.foreground.toArgb(),
+                    textSize = App.Theme.dimensions.text.value * 2,
+                    onChange = { index ->
+                        maxIndex = index + minIndex + 1
+                    },
+                )
+            }
+            Text(
+                value = App.Theme.strings.ok,
+                onClick = {
+                    // todo
+                    onDismiss()
+                },
+            )
+        }
+    }
+}
+
+@Composable
 internal fun SettingsScreen(
     onBack: () -> Unit,
 ) {
@@ -99,7 +298,8 @@ internal fun SettingsScreen(
         onBack()
     }
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
             .background(App.Theme.colors.background),
     ) {
         Box(
@@ -161,6 +361,18 @@ internal fun SettingsScreen(
             if (dialogLanguage) {
                 DialogLanguage {
                     dialogLanguage = false
+                }
+            }
+            var dialogRange by remember { mutableStateOf(false) }
+            Text(
+                value = App.Theme.strings.range,
+                onClick = {
+                    dialogRange = true
+                },
+            )
+            if (dialogRange) {
+                DialogRange {
+                    dialogRange = false
                 }
             }
         }

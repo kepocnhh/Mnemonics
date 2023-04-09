@@ -14,4 +14,6 @@ internal val En = Strings(
     play = "play",
     ru = "russian",
     settings = "settings",
+    range = "range",
+    ok = "ok",
 )

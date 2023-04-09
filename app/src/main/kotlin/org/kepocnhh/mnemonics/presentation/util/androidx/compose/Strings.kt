@@ -15,4 +15,6 @@ internal class Strings(
     val play: String,
     val ru: String,
     val settings: String,
+    val range: String,
+    val ok: String,
 )
