@@ -1,24 +1,7 @@
 package org.kepocnhh.mnemonics
 
-import android.content.res.ColorStateList
-import android.graphics.Typeface
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.RippleDrawable
-import android.graphics.drawable.StateListDrawable
-import android.util.TypedValue
-import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.BaseAdapter
 import android.widget.NumberPicker
-import android.widget.SimpleAdapter
-import android.widget.Spinner
-import android.widget.SpinnerAdapter
-import android.widget.TextView
 import androidx.activity.compose.BackHandler
-import androidx.appcompat.widget.AppCompatSpinner
-import androidx.appcompat.widget.MenuPopupWindow.MenuDropDownListView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,20 +23,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
-import androidx.core.content.ContextCompat
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
 import org.kepocnhh.mnemonics.implementation.module.theme.ThemeViewModel
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Insets
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
-import org.kepocnhh.mnemonics.presentation.util.androidx.compose.padding
-import org.kepocnhh.mnemonics.presentation.util.androidx.compose.ui.unit.toPx
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.ui.viewinterop.Spinner
 
 @Composable
 private fun DialogColors(onDismiss: () -> Unit) {
@@ -165,105 +145,6 @@ private fun Picker(
 }
 
 @Composable
-private fun Spinner(
-    modifier: Modifier,
-    values: List<String>,
-    index: Int,
-    backgroundColor: Int,
-    foregroundColor: Int,
-    textSize: Float,
-    paddingTop: Int,
-    paddingBottom: Int,
-    onChange: (Int) -> Unit
-) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            Spinner(context).also {
-                it.background = null
-                it.setPadding(0, 0, 0, 0)
-                it.setPopupBackgroundDrawable(ColorDrawable(backgroundColor))
-            }
-        },
-        update = { view ->
-            view.onItemSelectedListener = null
-            view.adapter = object: BaseAdapter() {
-                override fun getCount(): Int {
-                    return values.size
-                }
-
-                override fun getItem(position: Int): Any {
-                    return values[position]
-                }
-
-                override fun getItemId(position: Int): Long {
-                    return position.toLong()
-                }
-
-                override fun getView(
-                    position: Int,
-                    convertView: View?,
-                    parent: ViewGroup?
-                ): View {
-                    val result: TextView = convertView as? TextView ?: TextView(view.context).also {
-                        it.layoutParams = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT,
-//                            itemHeight,
-                        )
-//                        it.background = ColorDrawable(backgroundColor)
-//                        it.background = RippleDrawable(
-//                            ColorStateList.valueOf(backgroundColor),
-//                            ColorDrawable(backgroundColor),
-//                            null,
-//                        )
-//                        it.foreground = TypedValue().let { value ->
-//                            view.context.theme.resolveAttribute(android.R.attr.selectableItemBackground, value, true)
-//                            ContextCompat.getDrawable(view.context, value.resourceId)
-//                        }
-                        it.background = StateListDrawable().also { states ->
-                            states.addState(
-                                intArrayOf(android.R.attr.state_pressed),
-                                ColorDrawable(foregroundColor).also { drawable ->
-                                    drawable.alpha = (256 * 0.25f).toInt()
-                                },
-                            )
-                            states.addState(
-                                intArrayOf(),
-                                ColorDrawable(backgroundColor),
-                            )
-                        }
-                        it.foreground = null
-                        it.setPadding(0, paddingTop, 0, paddingBottom)
-                        it.gravity = Gravity.CENTER
-                        it.typeface = Typeface.MONOSPACE
-                        it.setTextColor(foregroundColor)
-                        it.textSize = textSize
-                    }
-                    result.text = values[position]
-                    return result
-                }
-            }
-            view.setSelection(index)
-            view.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    onChange(position)
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {
-                    TODO("Not yet implemented: onNothingSelected")
-                }
-            }
-        },
-    )
-}
-
-@Composable
 private fun DialogRange(onDismiss: () -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -290,11 +171,8 @@ private fun DialogRange(onDismiss: () -> Unit) {
                     modifier = Modifier.weight(1f),
                     values = values.subList(0, maxIndex),
                     index = minIndex,
-                    backgroundColor = App.Theme.colors.background.toArgb(),
-                    foregroundColor = App.Theme.colors.foreground.toArgb(),
                     textSize = App.Theme.dimensions.text.value * 2,
-                    paddingTop = 8.dp.toPx().toInt(),
-                    paddingBottom = 8.dp.toPx().toInt(),
+                    padding = Insets.empty.copy(top = 8.dp, bottom = 8.dp),
                     onChange = { index ->
                         minIndex = index
                     },
@@ -310,11 +188,8 @@ private fun DialogRange(onDismiss: () -> Unit) {
                     modifier = Modifier.weight(1f),
                     values = values.subList(minIndex + 1, values.size),
                     index = maxIndex - minIndex - 1,
-                    backgroundColor = App.Theme.colors.background.toArgb(),
-                    foregroundColor = App.Theme.colors.foreground.toArgb(),
                     textSize = App.Theme.dimensions.text.value * 2,
-                    paddingTop = 8.dp.toPx().toInt(),
-                    paddingBottom = 8.dp.toPx().toInt(),
+                    padding = Insets.empty.copy(top = 8.dp, bottom = 8.dp),
                     onChange = { index ->
                         maxIndex = index + minIndex + 1
                     },
