@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.ui.unit.px
 
 @Immutable
@@ -17,7 +18,11 @@ internal data class Insets(
     val end: Dp,
     val start: Dp,
     val top: Dp,
-)
+) {
+    companion object {
+        val empty = Insets(0.dp, 0.dp, 0.dp, 0.dp)
+    }
+}
 
 internal fun WindowInsets.toInsets(density: Float) : Insets {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

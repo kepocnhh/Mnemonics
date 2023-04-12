@@ -19,6 +19,9 @@ import org.kepocnhh.mnemonics.foundation.entity.Language
 import org.kepocnhh.mnemonics.foundation.entity.ThemeState
 import org.kepocnhh.mnemonics.foundation.provider.Injection
 import org.kepocnhh.mnemonics.foundation.provider.coroutine.Contexts
+import org.kepocnhh.mnemonics.implementation.entity.Environment
+import org.kepocnhh.mnemonics.implementation.entity.Range
+import org.kepocnhh.mnemonics.implementation.provider.data.local.Defaults
 import org.kepocnhh.mnemonics.implementation.provider.data.local.FinalLocalDataProvider
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Colors
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Dimensions
@@ -26,6 +29,7 @@ import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Strings
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.strings.En
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.strings.Ru
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.toInsets
+import kotlin.time.Duration.Companion.seconds
 
 internal class App : Application() {
     object Theme {
@@ -85,6 +89,7 @@ internal class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        val defaultLength = 3
         val injection = Injection(
             contexts = Contexts(
                 main = Dispatchers.Main,
@@ -92,9 +97,20 @@ internal class App : Application() {
             ),
             local = FinalLocalDataProvider(
                 context = this,
-                default = ThemeState(
-                    colorsType = ColorsType.AUTO,
-                    language = Language.AUTO,
+                defaults = Defaults(
+                    themeState = ThemeState(
+                        colorsType = ColorsType.AUTO,
+                        language = Language.AUTO,
+                    ),
+                    env = Environment.new(
+                        delay = 6.seconds,
+                        length = defaultLength,
+                        range = Range.new(
+                            start = 0,
+                            endInclusive = 1109,
+                            length = defaultLength
+                        )
+                    )
                 )
             )
         )

@@ -58,4 +58,5 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.compose.foundation:foundation:${Version.Android.compose}")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
+    testImplementation("junit:junit:4.13.2")
 }
