@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,8 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
-import org.kepocnhh.mnemonics.foundation.entity.MainEnvironment
+import org.kepocnhh.mnemonics.implementation.entity.Environment
+import org.kepocnhh.mnemonics.implementation.entity.Range
 import org.kepocnhh.mnemonics.implementation.entity.formatted
+import org.kepocnhh.mnemonics.implementation.module.env.EnvironmentViewModel
 import org.kepocnhh.mnemonics.implementation.module.main.MainViewModel
 import org.kepocnhh.mnemonics.implementation.module.theme.ThemeViewModel
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Insets
@@ -101,21 +104,20 @@ private fun DialogLanguage(onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun DialogRange(onDismiss: () -> Unit) {
+private fun DialogRange(
+    env: Environment,
+    onDismiss: () -> Unit,
+    onRange: (Range) -> Unit,
+) {
     Dialog(
         onDismissRequest = onDismiss,
     ) {
-        val mainViewModel = App.viewModel<MainViewModel>()
-        val values = listOf(0) + (0..11).map { 10 + 100 * it }
-        var minIndex by remember { mutableStateOf(0) }
-        var maxIndex by remember { mutableStateOf(values.lastIndex) }
-        println("min: $minIndex")
-        println("max: $maxIndex")
-        println("values: $values")
-        val length = 3
         Column(
             modifier = Modifier.background(App.Theme.colors.background)
         ) {
+            val values = listOf(0) + (0..11).map { 10 + 100 * it }
+            var minIndex by remember { mutableStateOf(values.indexOf(env.range.start)) }
+            var maxIndex by remember { mutableStateOf(values.indexOf(env.range.endInclusive + 1)) }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -131,7 +133,7 @@ private fun DialogRange(onDismiss: () -> Unit) {
                 Spinner(
                     modifier = Modifier.weight(1f),
                     values = values.subList(0, maxIndex).map { number ->
-                        number.formatted(length = length)
+                        number.formatted(length = env.length)
                     },
                     index = minIndex,
                     textSize = App.Theme.dimensions.text.value * 2,
@@ -150,7 +152,7 @@ private fun DialogRange(onDismiss: () -> Unit) {
                 Spinner(
                     modifier = Modifier.weight(1f),
                     values = values.subList(minIndex + 1, values.size).map { number ->
-                        (number - 1).formatted(length = length)
+                        (number - 1).formatted(length = env.length)
                     },
                     index = maxIndex - minIndex - 1,
                     textSize = App.Theme.dimensions.text.value * 2,
@@ -163,12 +165,10 @@ private fun DialogRange(onDismiss: () -> Unit) {
             Text(
                 value = App.Theme.strings.ok,
                 onClick = {
-                    mainViewModel.setRange(
-                        MainEnvironment.Range(
-                            start = values[minIndex],
-                            endInclusive = values[maxIndex],
-                        )
-                    )
+                    val newRange = Range.new(start = values[minIndex], endInclusive = values[maxIndex] - 1, length = env.length)
+                    if (newRange != env.range) {
+                        onRange(newRange)
+                    }
                     onDismiss()
                 },
             )
@@ -257,8 +257,22 @@ internal fun SettingsScreen(
                 },
             )
             if (dialogRange) {
-                DialogRange {
-                    dialogRange = false
+                val envViewModel = App.viewModel<EnvironmentViewModel>()
+                val env = envViewModel.state.collectAsState(null).value
+                if (env == null) {
+                    envViewModel.requestState()
+                } else {
+                    val mainViewModel = App.viewModel<MainViewModel>()
+                    DialogRange(
+                        env = env,
+                        onRange = { range ->
+                            envViewModel.setRange(range)
+                            mainViewModel.reset()
+                        },
+                        onDismiss = {
+                            dialogRange = false
+                        }
+                    )
                 }
             }
         }

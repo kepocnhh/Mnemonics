@@ -16,10 +16,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
-import org.kepocnhh.mnemonics.foundation.entity.MainEnvironment
 import org.kepocnhh.mnemonics.foundation.entity.ThemeState
 import org.kepocnhh.mnemonics.foundation.provider.Injection
 import org.kepocnhh.mnemonics.foundation.provider.coroutine.Contexts
+import org.kepocnhh.mnemonics.implementation.entity.Environment
+import org.kepocnhh.mnemonics.implementation.entity.Range
 import org.kepocnhh.mnemonics.implementation.provider.data.local.Defaults
 import org.kepocnhh.mnemonics.implementation.provider.data.local.FinalLocalDataProvider
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Colors
@@ -88,6 +89,7 @@ internal class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        val defaultLength = 3
         val injection = Injection(
             contexts = Contexts(
                 main = Dispatchers.Main,
@@ -100,12 +102,13 @@ internal class App : Application() {
                         colorsType = ColorsType.AUTO,
                         language = Language.AUTO,
                     ),
-                    env = MainEnvironment(
+                    env = Environment.new(
                         time = 6.seconds,
-                        length = 3,
-                        range = MainEnvironment.Range(
+                        length = defaultLength,
+                        range = Range.new(
                             start = 0,
                             endInclusive = 1109,
+                            length = defaultLength
                         )
                     )
                 )

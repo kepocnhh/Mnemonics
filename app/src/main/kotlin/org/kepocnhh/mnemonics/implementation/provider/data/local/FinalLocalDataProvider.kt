@@ -4,14 +4,15 @@ import android.content.Context
 import org.kepocnhh.mnemonics.BuildConfig
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
-import org.kepocnhh.mnemonics.foundation.entity.MainEnvironment
 import org.kepocnhh.mnemonics.foundation.entity.ThemeState
 import org.kepocnhh.mnemonics.foundation.provider.data.local.LocalDataProvider
+import org.kepocnhh.mnemonics.implementation.entity.Environment
+import org.kepocnhh.mnemonics.implementation.entity.Range
 import kotlin.time.Duration.Companion.milliseconds
 
 internal data class Defaults(
     val themeState: ThemeState,
-    val env: MainEnvironment,
+    val env: Environment,
 )
 
 internal class FinalLocalDataProvider(
@@ -40,14 +41,16 @@ internal class FinalLocalDataProvider(
                 .commit()
         }
 
-    override var env: MainEnvironment
+    override var env: Environment
         get() {
-            return MainEnvironment(
+            val length = preferences.getInt("length", defaults.env.length)
+            return Environment.new(
                 time = preferences.getLong("time", defaults.env.time.inWholeMilliseconds).milliseconds,
-                length = preferences.getInt("length", defaults.env.length),
-                range = MainEnvironment.Range(
+                length = length,
+                range = Range.new(
                     start = preferences.getInt("start", defaults.env.range.start),
                     endInclusive = preferences.getInt("endInclusive", defaults.env.range.endInclusive),
+                    length = length,
                 )
             )
         }

@@ -7,8 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import org.kepocnhh.mnemonics.foundation.entity.MainEnvironment
 import org.kepocnhh.mnemonics.foundation.provider.Injection
+import org.kepocnhh.mnemonics.implementation.entity.Environment
+import org.kepocnhh.mnemonics.implementation.entity.Range
 import org.kepocnhh.mnemonics.implementation.util.androidx.lifecycle.AbstractViewModel
 import java.util.Random
 import kotlin.time.Duration.Companion.milliseconds
@@ -24,7 +25,7 @@ internal class MainViewModel(private val injection: Injection) : AbstractViewMod
     private val _state = MutableStateFlow(empty)
     val state = _state.asStateFlow()
 
-    private val _env = MutableStateFlow<MainEnvironment?>(null)
+    private val _env = MutableStateFlow<Environment?>(null)
     val env = _env.asStateFlow()
 
     private var job: Job? = null
@@ -70,11 +71,8 @@ internal class MainViewModel(private val injection: Injection) : AbstractViewMod
         _state.value = state.value.copy(isPaused = value)
     }
 
-    fun setRange(range: MainEnvironment.Range) {
+    fun reset() {
         injection.launch {
-            withContext(injection.contexts.io) {
-                injection.local.env = injection.local.env.copy(range = range)
-            }
             _state.value = empty
         }
     }
@@ -89,7 +87,7 @@ internal class MainViewModel(private val injection: Injection) : AbstractViewMod
 
         private fun nextNumber(
             random: Random,
-            range: MainEnvironment.Range,
+            range: Range,
             actual: Int?
         ): Int {
             while (true) {
@@ -100,7 +98,7 @@ internal class MainViewModel(private val injection: Injection) : AbstractViewMod
 
         private fun nextNumber(
             random: Random,
-            range: MainEnvironment.Range,
+            range: Range,
         ): Int {
             return random.nextInt(range.endInclusive - range.start + 1) + range.start
         }
