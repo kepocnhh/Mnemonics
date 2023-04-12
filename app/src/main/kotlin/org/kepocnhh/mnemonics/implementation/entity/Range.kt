@@ -51,4 +51,8 @@ internal class Range private constructor(
     override fun toString(): String {
         return "$start..$endInclusive"
     }
+
+    fun toString(length: Int): String {
+        return "${start.formatted(length = length)}..${endInclusive.formatted(length = length)}"
+    }
 }

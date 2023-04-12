@@ -209,7 +209,7 @@ private fun SettingsRange() {
                     .align(Alignment.CenterEnd)
                     .padding(end = 16.dp),
                 weight = FontWeight.Bold,
-                value = "${env.range}"
+                value = App.Theme.strings.range(env.range, length = env.length),
             )
         }
     }
@@ -313,7 +313,7 @@ private fun SettingsDelay() {
                     .align(Alignment.CenterEnd)
                     .padding(end = 16.dp),
                 weight = FontWeight.Bold,
-                value = "${env.delay}"
+                value = App.Theme.strings.delay(env.delay)
             )
         }
     }
