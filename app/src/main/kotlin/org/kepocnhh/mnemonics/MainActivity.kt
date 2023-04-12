@@ -24,8 +24,6 @@ class MainActivity : AppCompatActivity() {
                     .fillMaxSize()
                     .background(App.Theme.colors.background)
             ) {
-                val TAG = "[MainActivity|${hashCode()}]"
-                println("$TAG:\n\tcompose...")
                 BackHandler {
                     finish()
                 }

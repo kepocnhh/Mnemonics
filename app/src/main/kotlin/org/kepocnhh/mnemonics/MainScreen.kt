@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.mnemonics.implementation.entity.formatted
 import org.kepocnhh.mnemonics.implementation.module.main.MainViewModel
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Colors
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.foundation.catchClicks
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.foundation.onClick
@@ -90,33 +91,7 @@ private fun ProgressBarHorizontal(value: Float) {
 }
 
 @Composable
-private fun PlayPauseButton() {
-    val viewModel = App.viewModel<MainViewModel>()
-    val state by viewModel.state.collectAsState()
-    Box(
-        modifier = Modifier
-            .size(App.Theme.dimensions.button)
-            .clickable {
-                viewModel.pause(!state.isPaused)
-            },
-    ) {
-        Image(
-            modifier = Modifier
-                .size(App.Theme.dimensions.icon)
-                .align(Alignment.Center),
-            painter = painterResource(
-                id = if (state.isPaused) R.drawable.play else R.drawable.pause
-            ),
-            contentDescription = if (state.isPaused) App.Theme.strings.play else App.Theme.strings.pause,
-            colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
-        )
-    }
-}
-
-@Composable
 internal fun ToSettings(onBack: () -> Unit) {
-    val TAG = "[ToSettings]"
-    println("$TAG:\n\tcompose...")
     val orientation = LocalConfiguration.current.orientation
     val initialWidth = LocalConfiguration.current.screenWidthDp.dp + App.Theme.dimensions.insets.end
     val targetWidth = when (orientation) {
@@ -139,14 +114,12 @@ internal fun ToSettings(onBack: () -> Unit) {
     if (back) {
         if (animatable.value == targetValue) onBack()
     }
-    println("$TAG: animatable: ${animatable.value}")
-    println("$TAG: target value: $targetValue")
     Box(modifier = Modifier.fillMaxSize()) {
         val alpha = (1f - animatable.value) * 0.75f
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(App.Theme.colors.background.copy(alpha = alpha)) // todo black?
+                .background(Colors.black.copy(alpha = alpha))
                 .onClick {
                     if (!back) back = true
                 },
