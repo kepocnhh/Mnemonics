@@ -19,18 +19,27 @@ import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Insets
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.ui.unit.toPx
 
 @Composable
+private fun Insets.toPaddings(): IntArray {
+    return intArrayOf(
+        start.toPx().toInt(),
+        top.toPx().toInt(),
+        end.toPx().toInt(),
+        bottom.toPx().toInt(),
+    )
+}
+
+@Composable
 internal fun Spinner(
     modifier: Modifier,
     values: List<String>,
     index: Int,
     textSize: Float,
-    padding: Insets,
+    insets: Insets,
     onChange: (Int) -> Unit
 ) {
     val backgroundColor = App.Theme.colors.background.toArgb()
     val foregroundColor = App.Theme.colors.foreground.toArgb()
-    val paddingTop = padding.top.toPx().toInt()
-    val paddingBottom = padding.bottom.toPx().toInt()
+    val paddings = insets.toPaddings()
     AndroidView(
         modifier = modifier,
         factory = { context ->
@@ -78,7 +87,12 @@ internal fun Spinner(
                             )
                         }
                         it.foreground = null
-                        it.setPadding(0, paddingTop, 0, paddingBottom)
+                        it.setPadding(
+                            paddings[0],
+                            paddings[1],
+                            paddings[2],
+                            paddings[3],
+                        )
                         it.gravity = Gravity.CENTER
                         it.typeface = Typeface.MONOSPACE
                         it.setTextColor(foregroundColor)

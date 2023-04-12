@@ -45,7 +45,7 @@ internal class FinalLocalDataProvider(
         get() {
             val length = preferences.getInt("length", defaults.env.length)
             return Environment.new(
-                time = preferences.getLong("time", defaults.env.time.inWholeMilliseconds).milliseconds,
+                delay = preferences.getLong("delay", defaults.env.delay.inWholeMilliseconds).milliseconds,
                 length = length,
                 range = Range.new(
                     start = preferences.getInt("start", defaults.env.range.start),
@@ -56,7 +56,7 @@ internal class FinalLocalDataProvider(
         }
         set(value) {
             preferences.edit()
-                .putLong("time", value.time.inWholeMilliseconds)
+                .putLong("delay", value.delay.inWholeMilliseconds)
                 .putInt("length", value.length)
                 .putInt("start", value.range.start)
                 .putInt("endInclusive", value.range.endInclusive)

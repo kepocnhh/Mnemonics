@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -37,7 +40,10 @@ import org.kepocnhh.mnemonics.implementation.module.main.MainViewModel
 import org.kepocnhh.mnemonics.implementation.module.theme.ThemeViewModel
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Insets
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.padding
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.ui.viewinterop.Spinner
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 private fun DialogColors(onDismiss: () -> Unit) {
@@ -137,7 +143,7 @@ private fun DialogRange(
                     },
                     index = minIndex,
                     textSize = App.Theme.dimensions.text.value * 2,
-                    padding = Insets.empty.copy(top = 8.dp, bottom = 8.dp),
+                    insets = Insets.empty.copy(top = 8.dp, bottom = 8.dp),
                     onChange = { index ->
                         minIndex = index
                     },
@@ -156,7 +162,7 @@ private fun DialogRange(
                     },
                     index = maxIndex - minIndex - 1,
                     textSize = App.Theme.dimensions.text.value * 2,
-                    padding = Insets.empty.copy(top = 8.dp, bottom = 8.dp),
+                    insets = Insets.empty.copy(top = 8.dp, bottom = 8.dp),
                     onChange = { index ->
                         maxIndex = index + minIndex + 1
                     },
@@ -165,7 +171,11 @@ private fun DialogRange(
             Text(
                 value = App.Theme.strings.ok,
                 onClick = {
-                    val newRange = Range.new(start = values[minIndex], endInclusive = values[maxIndex] - 1, length = env.length)
+                    val newRange = Range.new(
+                        start = values[minIndex],
+                        endInclusive = values[maxIndex] - 1,
+                        length = env.length
+                    )
                     if (newRange != env.range) {
                         onRange(newRange)
                     }
@@ -173,6 +183,155 @@ private fun DialogRange(
                 },
             )
         }
+    }
+}
+
+@Composable
+private fun SettingsRange() {
+    val envViewModel = App.viewModel<EnvironmentViewModel>()
+    val env = envViewModel.state.collectAsState(null).value
+    var dialog by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(App.Theme.dimensions.button)
+            .clickable {
+                dialog = true
+            }
+    ) {
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            value = App.Theme.strings.range,
+        )
+        if (env != null) {
+            Text(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 16.dp),
+                weight = FontWeight.Bold,
+                value = "${env.range}"
+            )
+        }
+    }
+    if (env == null) {
+        envViewModel.requestState()
+    } else {
+        if (!dialog) return
+        val mainViewModel = App.viewModel<MainViewModel>()
+        DialogRange(
+            env = env,
+            onRange = { range ->
+                envViewModel.setRange(range)
+                mainViewModel.reset()
+            },
+            onDismiss = {
+                dialog = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun DialogDelay(
+    delay: Duration,
+    onDismiss: () -> Unit,
+    onDelay: (Duration) -> Unit,
+) {
+    Dialog(
+        onDismissRequest = {
+            onDismiss()
+        },
+    ) {
+        val values = listOf(3.seconds, 6.seconds, 9.seconds)
+        var index by remember { mutableStateOf(values.indexOf(delay)) }
+        Column(
+            modifier = Modifier.background(App.Theme.colors.background)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                Spinner(
+                    modifier = Modifier,
+                    values = values.map {
+                        it.inWholeSeconds.toString()
+                    },
+                    index = index,
+                    textSize = App.Theme.dimensions.text.value * 2,
+                    insets = Insets(
+                        start = 32.dp,
+                        end = 32.dp,
+                        top = 8.dp,
+                        bottom = 8.dp
+                    ),
+                    onChange = {
+                        index = it
+                    },
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    padding = Insets.empty.copy(bottom = 8.dp),
+                    value = App.Theme.strings.seconds,
+                    align = TextAlign.Start,
+                )
+            }
+            Text(
+                value = App.Theme.strings.ok,
+                onClick = {
+                    val newDelay = values[index]
+                    if (newDelay != delay) {
+                        onDelay(newDelay)
+                    }
+                    onDismiss()
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsDelay() {
+    val envViewModel = App.viewModel<EnvironmentViewModel>()
+    val env = envViewModel.state.collectAsState(null).value
+    var dialog by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(App.Theme.dimensions.button)
+            .clickable {
+                dialog = true
+            }
+    ) {
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            value = App.Theme.strings.delay,
+        )
+        if (env != null) {
+            Text(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 16.dp),
+                weight = FontWeight.Bold,
+                value = "${env.delay}"
+            )
+        }
+    }
+    if (env == null) {
+        envViewModel.requestState()
+    } else {
+        if (!dialog) return
+        val mainViewModel = App.viewModel<MainViewModel>()
+        DialogDelay(
+            delay = env.delay,
+            onDelay = { delay ->
+                envViewModel.setDelay(delay)
+                mainViewModel.reset()
+            },
+            onDismiss = {
+                dialog = false
+            }
+        )
     }
 }
 
@@ -249,32 +408,8 @@ internal fun SettingsScreen(
                     dialogLanguage = false
                 }
             }
-            var dialogRange by remember { mutableStateOf(false) }
-            Text(
-                value = App.Theme.strings.range,
-                onClick = {
-                    dialogRange = true
-                },
-            )
-            if (dialogRange) {
-                val envViewModel = App.viewModel<EnvironmentViewModel>()
-                val env = envViewModel.state.collectAsState(null).value
-                if (env == null) {
-                    envViewModel.requestState()
-                } else {
-                    val mainViewModel = App.viewModel<MainViewModel>()
-                    DialogRange(
-                        env = env,
-                        onRange = { range ->
-                            envViewModel.setRange(range)
-                            mainViewModel.reset()
-                        },
-                        onDismiss = {
-                            dialogRange = false
-                        }
-                    )
-                }
-            }
+            SettingsRange()
+            SettingsDelay()
         }
     }
 }

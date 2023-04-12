@@ -47,4 +47,8 @@ internal class Range private constructor(
     override fun hashCode(): Int {
         return Objects.hash(start, endInclusive)
     }
+
+    override fun toString(): String {
+        return "$start..$endInclusive"
+    }
 }

@@ -12,14 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.kepocnhh.mnemonics.App
-
-private val NONE: () -> Unit = {}
 
 @Composable
 internal fun Text(
@@ -52,20 +51,43 @@ internal fun Text(
 @Composable
 internal fun Text(
     value: String,
-    padding: Insets = Insets.empty,
+    modifier: Modifier,
     size: TextUnit = App.Theme.dimensions.text,
     family: FontFamily = FontFamily.Default,
+    weight: FontWeight = FontWeight.Normal,
     color: Color = App.Theme.colors.foreground,
     align: TextAlign = TextAlign.Center
 ) {
     BasicText(
-        modifier = Modifier.padding(padding),
+        modifier = modifier,
         style = TextStyle(
             fontFamily = family,
+            fontWeight = weight,
             fontSize = size,
             color = color,
             textAlign = align,
         ),
         text = value,
+    )
+}
+
+@Composable
+internal fun Text(
+    value: String,
+    padding: Insets = Insets.empty,
+    size: TextUnit = App.Theme.dimensions.text,
+    family: FontFamily = FontFamily.Default,
+    weight: FontWeight = FontWeight.Normal,
+    color: Color = App.Theme.colors.foreground,
+    align: TextAlign = TextAlign.Center
+) {
+    Text(
+        value = value,
+        modifier = Modifier.padding(padding),
+        size = size,
+        family = family,
+        weight = weight,
+        color = color,
+        align = align,
     )
 }

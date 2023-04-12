@@ -3,20 +3,20 @@ package org.kepocnhh.mnemonics.implementation.entity
 import kotlin.time.Duration
 
 internal class Environment private constructor(
-    val time: Duration,
+    val delay: Duration,
     val range: Range,
     val length: Int
 ) {
     companion object {
         internal fun new(
-            time: Duration,
+            delay: Duration,
             range: Range,
             length: Int,
         ): Environment {
-            require(time > Duration.ZERO)
+            require(delay > Duration.ZERO)
             require(length in 1..9)
             return Environment(
-                time = time,
+                delay = delay,
                 range = range,
                 length = length,
             )
@@ -25,7 +25,15 @@ internal class Environment private constructor(
 
     fun copy(range: Range): Environment {
         return Environment(
-            time = time,
+            delay = delay,
+            length = length,
+            range = range
+        )
+    }
+
+    fun copy(delay: Duration): Environment {
+        return Environment(
+            delay = delay,
             length = length,
             range = range
         )

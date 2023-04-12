@@ -103,7 +103,7 @@ internal class App : Application() {
                         language = Language.AUTO,
                     ),
                     env = Environment.new(
-                        time = 6.seconds,
+                        delay = 6.seconds,
                         length = defaultLength,
                         range = Range.new(
                             start = 0,

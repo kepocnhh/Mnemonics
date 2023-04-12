@@ -34,8 +34,8 @@ internal class MainViewModel(private val injection: Injection) : AbstractViewMod
         if (job?.isActive == true) return
         job = injection.launch {
             val actual = state.value.number
-            val time = env.value?.time
-            if (actual == null || time == null) {
+            val delay = env.value?.delay
+            if (actual == null || delay == null) {
                 _env.value = withContext(injection.contexts.io) {
                     injection.local.env
                 }
@@ -51,11 +51,11 @@ internal class MainViewModel(private val injection: Injection) : AbstractViewMod
                     nextNumber(random, range = injection.local.env.range, actual = actual)
                 }
                 withContext(injection.contexts.io) {
-                    val start = System.nanoTime().nanoseconds - time * state.value.progress.toDouble()
+                    val start = System.nanoTime().nanoseconds - delay * state.value.progress.toDouble()
                     while (isActive) {
                         if (_state.value.isPaused) break
                         val now = System.nanoTime().nanoseconds
-                        val duration = ((now - start) / time).takeIf { it < 1 } ?: break
+                        val duration = ((now - start) / delay).takeIf { it < 1 } ?: break
                         _state.value = state.value.copy(progress = duration.toFloat())
                         delay(64.milliseconds)
                     }

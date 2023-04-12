@@ -17,5 +17,7 @@ internal val Ru = Strings(
     range = "интервал",
     ok = "ок",
     rangeFrom = "от:",
-    rangeTo = "до:"
+    rangeTo = "до:",
+    delay = "задержка",
+    seconds = "секунд",
 )

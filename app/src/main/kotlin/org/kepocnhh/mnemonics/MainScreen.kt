@@ -56,7 +56,7 @@ private fun ProgressBar() {
         animatable.snapTo(state.progress)
     }
     LaunchedEffect(state.number, state.isPaused) {
-        val time = env?.time
+        val time = env?.delay
         if (state.isPaused || time == null) {
             if (animatable.isRunning) animatable.stop()
         } else {

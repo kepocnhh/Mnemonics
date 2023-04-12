@@ -18,4 +18,6 @@ internal val En = Strings(
     ok = "ok",
     rangeFrom = "from:",
     rangeTo = "to:",
+    delay = "delay",
+    seconds = "seconds",
 )

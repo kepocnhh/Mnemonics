@@ -19,4 +19,6 @@ internal class Strings(
     val ok: String,
     val rangeFrom: String,
     val rangeTo: String,
+    val delay: String,
+    val seconds: String,
 )
