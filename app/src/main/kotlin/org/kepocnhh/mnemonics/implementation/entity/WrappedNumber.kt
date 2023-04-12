@@ -98,7 +98,7 @@ internal fun Int.wrapped(rank: Int): WrappedNumber {
 }
 
 internal fun Int.formatted(length: Int): String {
-    require(length in 1..9)
+    require(length in 1..9) { "length: $length" }
     require(this in getRange(length = length))
     val n = getPowerOfGeometricSeries(sum = toDouble()).toInt()
     val formatted = this - getSumOfGeometricSeries(n = n)

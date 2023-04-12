@@ -16,9 +16,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
+import org.kepocnhh.mnemonics.foundation.entity.MainEnvironment
 import org.kepocnhh.mnemonics.foundation.entity.ThemeState
 import org.kepocnhh.mnemonics.foundation.provider.Injection
 import org.kepocnhh.mnemonics.foundation.provider.coroutine.Contexts
+import org.kepocnhh.mnemonics.implementation.provider.data.local.Defaults
 import org.kepocnhh.mnemonics.implementation.provider.data.local.FinalLocalDataProvider
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Colors
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Dimensions
@@ -26,6 +28,7 @@ import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Strings
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.strings.En
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.strings.Ru
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.toInsets
+import kotlin.time.Duration.Companion.seconds
 
 internal class App : Application() {
     object Theme {
@@ -92,9 +95,19 @@ internal class App : Application() {
             ),
             local = FinalLocalDataProvider(
                 context = this,
-                default = ThemeState(
-                    colorsType = ColorsType.AUTO,
-                    language = Language.AUTO,
+                defaults = Defaults(
+                    themeState = ThemeState(
+                        colorsType = ColorsType.AUTO,
+                        language = Language.AUTO,
+                    ),
+                    env = MainEnvironment(
+                        time = 6.seconds,
+                        length = 3,
+                        range = MainEnvironment.Range(
+                            start = 0,
+                            endInclusive = 1109,
+                        )
+                    )
                 )
             )
         )

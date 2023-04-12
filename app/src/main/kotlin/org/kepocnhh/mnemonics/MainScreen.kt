@@ -1,7 +1,6 @@
 package org.kepocnhh.mnemonics
 
 import android.content.res.Configuration
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.snap
@@ -12,7 +11,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,8 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -39,65 +35,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.observeOn
-import kotlinx.coroutines.flow.publishOn
-import kotlinx.coroutines.flow.takeWhile
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
+import org.kepocnhh.mnemonics.implementation.entity.formatted
 import org.kepocnhh.mnemonics.implementation.module.main.MainViewModel
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.foundation.catchClicks
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.foundation.onClick
-import java.util.Random
-import kotlin.math.absoluteValue
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.nanoseconds
-import kotlin.time.Duration.Companion.seconds
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.padding
-
-private val times = flow {
-    while (true) {
-        delay(64.milliseconds)
-        emit(System.nanoTime().nanoseconds)
-    }
-}
-
-private fun times(
-    delay: Duration,
-    start: Duration,
-    target: Duration
-) = flow {
-    while (true) {
-        delay(delay)
-        val div = System.nanoTime().nanoseconds - start
-        emit(div / target)
-    }
-}
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-private fun ProgressBar(state: MainViewModel.State) {
+private fun ProgressBar() {
+    val viewModel = App.viewModel<MainViewModel>()
+    val state by viewModel.state.collectAsState()
+    val env by viewModel.env.collectAsState()
     val animatable = remember { Animatable(initialValue = state.progress) }
     LaunchedEffect(state.number) {
         animatable.snapTo(state.progress)
     }
     LaunchedEffect(state.number, state.isPaused) {
-        if (state.isPaused) {
+        val time = env?.time
+        if (state.isPaused || time == null) {
             if (animatable.isRunning) animatable.stop()
         } else {
-            val duration = MainViewModel.time - MainViewModel.time * state.progress.toDouble()
+            val duration = time - time * state.progress.toDouble()
             val animationSpec = tween<Float>(
                 durationMillis = duration.inWholeMilliseconds.toInt(),
                 easing = LinearEasing
@@ -273,24 +236,18 @@ private fun Toolbar(toSettings: () -> Unit) {
 @Composable
 private fun NextNumber() {
     val viewModel = App.viewModel<MainViewModel>()
-    val TAG = "[NextNumber|${viewModel.hashCode()}]"
     val state by viewModel.state.collectAsState()
-    LaunchedEffect(state.isPaused) {
-        println("$TAG: paused: ${state.isPaused}")
+    LaunchedEffect(state.isPaused, state.number) {
         if (!state.isPaused) viewModel.nextNumber()
-    }
-    LaunchedEffect(state.number) {
-        println("$TAG: | number: ${state.number} | paused: ${state.isPaused}")
-        viewModel.nextNumber()
     }
 }
 
 @Composable
 private fun MainScreenPortrait() {
     Box(Modifier.fillMaxSize()) {
-        val TAG = "[MS|P|${hashCode()}]"
         val viewModel = App.viewModel<MainViewModel>()
         val state by viewModel.state.collectAsState()
+        val env by viewModel.env.collectAsState()
         var toSettings by rememberSaveable { mutableStateOf(false) }
         Toolbar(
             toSettings = {
@@ -298,14 +255,6 @@ private fun MainScreenPortrait() {
                 toSettings = true
             }
         )
-//        LaunchedEffect(state.isPaused) {
-//            println("$TAG: paused: ${state.isPaused}")
-//            if (!state.isPaused) viewModel.nextNumber()
-//        }
-//        LaunchedEffect(state.number) {
-//            println("$TAG: | number: ${state.number} | paused: ${state.isPaused}")
-//            viewModel.nextNumber()
-//        }
         NextNumber()
         Column(
             modifier = Modifier
@@ -313,23 +262,19 @@ private fun MainScreenPortrait() {
                 .align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val text = when (val number = state.number) {
-                null -> "..."
-                -100 -> " 00"
-                else -> {
-                    if (number < 0) {
-                        " %02d".format(number.absoluteValue)
-                    } else {
-                        "%03d".format(number)
-                    }
-                }
-            } // todo theme strings
+            val number = state.number
+            val length = env?.length
+            val text = if (number == null || length == null) {
+                "---"
+            } else {
+                number.formatted(length = length)
+            }
             Text(
                 value = text,
                 size = 128.sp,
                 family = FontFamily.Monospace
             )
-            ProgressBar(state)
+            ProgressBar()
             PlayPauseButton()
         }
         if (toSettings) {
@@ -345,9 +290,9 @@ private fun MainScreenPortrait() {
 @Composable
 private fun MainScreenLandscape() {
     Box(Modifier.fillMaxSize()) {
-        val TAG = "[MS|L|${hashCode()}]"
         val viewModel = App.viewModel<MainViewModel>()
         val state by viewModel.state.collectAsState()
+        val env by viewModel.env.collectAsState()
         var toSettings by rememberSaveable { mutableStateOf(false) }
         Toolbar(
             toSettings = {
@@ -355,14 +300,6 @@ private fun MainScreenLandscape() {
                 toSettings = true
             }
         )
-//        LaunchedEffect(state.isPaused) {
-//            println("$TAG: paused: ${state.isPaused}")
-//            if (!state.isPaused) viewModel.nextNumber()
-//        }
-//        LaunchedEffect(state.number) {
-//            println("$TAG: | number: ${state.number} | paused: ${state.isPaused}")
-//            if (!state.isPaused) viewModel.nextNumber()
-//        }
         NextNumber()
         Column(
             modifier = Modifier
@@ -375,17 +312,13 @@ private fun MainScreenLandscape() {
                     .align(Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val text = when (val number = state.number) {
-                    null -> "..."
-                    -100 -> " 00"
-                    else -> {
-                        if (number < 0) {
-                            " %02d".format(number.absoluteValue)
-                        } else {
-                            "%03d".format(number)
-                        }
-                    }
-                } // todo theme strings
+                val number = state.number
+                val length = env?.length
+                val text = if (number == null || length == null) {
+                    "---"
+                } else {
+                    number.formatted(length = length)
+                }
                 Text(
                     value = text,
                     size = 128.sp,
@@ -403,7 +336,7 @@ private fun MainScreenLandscape() {
                     )
                     .wrapContentHeight(Alignment.CenterVertically)
             ) {
-                ProgressBar(state)
+                ProgressBar()
             }
         }
         if (toSettings) {

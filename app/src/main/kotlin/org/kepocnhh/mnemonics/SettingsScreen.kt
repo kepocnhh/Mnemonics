@@ -28,7 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
+import org.kepocnhh.mnemonics.foundation.entity.MainEnvironment
 import org.kepocnhh.mnemonics.implementation.entity.formatted
+import org.kepocnhh.mnemonics.implementation.module.main.MainViewModel
 import org.kepocnhh.mnemonics.implementation.module.theme.ThemeViewModel
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Insets
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
@@ -103,7 +105,8 @@ private fun DialogRange(onDismiss: () -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
     ) {
-        val values = listOf(0, 10) + (0..10).map { 110 + 100 * it }
+        val mainViewModel = App.viewModel<MainViewModel>()
+        val values = listOf(0) + (0..11).map { 10 + 100 * it }
         var minIndex by remember { mutableStateOf(0) }
         var maxIndex by remember { mutableStateOf(values.lastIndex) }
         println("min: $minIndex")
@@ -160,7 +163,12 @@ private fun DialogRange(onDismiss: () -> Unit) {
             Text(
                 value = App.Theme.strings.ok,
                 onClick = {
-                    // todo
+                    mainViewModel.setRange(
+                        MainEnvironment.Range(
+                            start = values[minIndex],
+                            endInclusive = values[maxIndex],
+                        )
+                    )
                     onDismiss()
                 },
             )
