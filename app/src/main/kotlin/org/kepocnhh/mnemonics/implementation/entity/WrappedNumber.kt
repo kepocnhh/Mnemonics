@@ -83,16 +83,24 @@ private fun getPowerOfGeometricSeries10(
     return kotlin.math.log10(1 + (sum * 9.0) / (a * 10.0))
 }
 
-private fun getRange(rank: Int): IntRange {
-    val end = getSumOfGeometricSeries(n = rank)
+private fun getRange(length: Int): IntRange {
+    val end = getSumOfGeometricSeries(n = length)
     return 0 until end.toInt()
 }
 
 internal fun Int.wrapped(rank: Int): WrappedNumber {
     require(rank in 1..9)
-    require(this in getRange(rank = rank))
+    require(this in getRange(length = rank))
     return WrappedNumberImpl(
         raw = this,
         rank = rank
     )
+}
+
+internal fun Int.formatted(length: Int): String {
+    require(length in 1..9)
+    require(this in getRange(length = length))
+    val n = getPowerOfGeometricSeries(sum = toDouble()).toInt()
+    val formatted = this - getSumOfGeometricSeries(n = n)
+    return "%${length}s".format("%0${n + 1}d".format(formatted.toInt()))
 }

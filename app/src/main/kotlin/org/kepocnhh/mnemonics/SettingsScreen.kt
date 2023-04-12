@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import org.kepocnhh.mnemonics.foundation.entity.ColorsType
 import org.kepocnhh.mnemonics.foundation.entity.Language
+import org.kepocnhh.mnemonics.implementation.entity.formatted
 import org.kepocnhh.mnemonics.implementation.module.theme.ThemeViewModel
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Insets
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
@@ -102,12 +103,16 @@ private fun DialogRange(onDismiss: () -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
     ) {
-        val values = listOf("a", "b", "c", "d", "e", "f", "g")
+        val values = listOf(0, 10) + (0..10).map { 110 + 100 * it }
         var minIndex by remember { mutableStateOf(0) }
         var maxIndex by remember { mutableStateOf(values.lastIndex) }
         println("min: $minIndex")
         println("max: $maxIndex")
-        Column(modifier = Modifier.background(App.Theme.colors.background)) {
+        println("values: $values")
+        val length = 3
+        Column(
+            modifier = Modifier.background(App.Theme.colors.background)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -122,7 +127,9 @@ private fun DialogRange(onDismiss: () -> Unit) {
                 Spacer(modifier = Modifier.width(4.dp))
                 Spinner(
                     modifier = Modifier.weight(1f),
-                    values = values.subList(0, maxIndex),
+                    values = values.subList(0, maxIndex).map { number ->
+                        number.formatted(length = length)
+                    },
                     index = minIndex,
                     textSize = App.Theme.dimensions.text.value * 2,
                     padding = Insets.empty.copy(top = 8.dp, bottom = 8.dp),
@@ -139,7 +146,9 @@ private fun DialogRange(onDismiss: () -> Unit) {
                 Spacer(modifier = Modifier.width(4.dp))
                 Spinner(
                     modifier = Modifier.weight(1f),
-                    values = values.subList(minIndex + 1, values.size),
+                    values = values.subList(minIndex + 1, values.size).map { number ->
+                        (number - 1).formatted(length = length)
+                    },
                     index = maxIndex - minIndex - 1,
                     textSize = App.Theme.dimensions.text.value * 2,
                     padding = Insets.empty.copy(top = 8.dp, bottom = 8.dp),
