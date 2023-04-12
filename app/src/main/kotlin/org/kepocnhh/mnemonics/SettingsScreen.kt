@@ -1,5 +1,6 @@
 package org.kepocnhh.mnemonics
 
+import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,7 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -336,6 +339,64 @@ private fun SettingsDelay() {
 }
 
 @Composable
+private fun Toolbar(
+    modifier: Modifier,
+    onBack: () -> Unit,
+) {
+    Box(modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .size(App.Theme.dimensions.toolbar)
+                .align(Alignment.BottomEnd)
+                .clickable {
+                    onBack()
+                },
+        ) {
+            Image(
+                modifier = Modifier
+                    .size(App.Theme.dimensions.icon)
+                    .align(Alignment.Center),
+                painter = painterResource(id = R.drawable.cross),
+                contentDescription = App.Theme.strings.back,
+                colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
+            )
+        }
+    }
+}
+
+@Composable
+private fun Buttons(modifier: Modifier) {
+    Column(modifier = modifier) {
+        var dialogColors by remember { mutableStateOf(false) }
+        Text(
+            value = App.Theme.strings.colors,
+            onClick = {
+                dialogColors = true
+            },
+        )
+        if (dialogColors) {
+            DialogColors {
+                dialogColors = false
+            }
+        }
+        var dialogLanguage by remember { mutableStateOf(false) }
+        Text(
+            value = App.Theme.strings.language,
+            onClick = {
+                dialogLanguage = true
+            },
+        )
+        if (dialogLanguage) {
+            DialogLanguage {
+                dialogLanguage = false
+            }
+        }
+        SettingsRange()
+        SettingsDelay()
+    }
+}
+
+@Composable
 internal fun SettingsScreen(
     onBack: () -> Unit,
 ) {
@@ -345,71 +406,30 @@ internal fun SettingsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(App.Theme.colors.background),
+            .background(App.Theme.colors.background)
+            .padding(end = App.Theme.dimensions.insets.end),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    end = App.Theme.dimensions.insets.end,
-                    start = App.Theme.dimensions.insets.start,
-                    top = App.Theme.dimensions.insets.top,
+        when (LocalConfiguration.current.orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                Toolbar(
+                    modifier = Modifier.fillMaxWidth()
+                        .height(App.Theme.dimensions.toolbar)
+                        .align(Alignment.BottomStart),
+                    onBack = onBack,
                 )
-                .height(App.Theme.dimensions.toolbar),
-        ) {
-            Row(
-                modifier = Modifier
-                    .size(App.Theme.dimensions.toolbar),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(App.Theme.dimensions.toolbar)
-                        .clickable {
-                            onBack()
-                        },
-                ) {
-                    Image(
-                        modifier = Modifier
-                            .size(App.Theme.dimensions.icon)
-                            .align(Alignment.Center),
-                        painter = painterResource(id = R.drawable.cross),
-                        contentDescription = App.Theme.strings.back,
-                        colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
-                    )
-                }
+            }
+            else -> {
+                Toolbar(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(bottom = App.Theme.dimensions.insets.bottom)
+                        .height(App.Theme.dimensions.toolbar)
+                        .align(Alignment.BottomStart),
+                    onBack = onBack,
+                )
             }
         }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center)
-        ) {
-            var dialogColors by remember { mutableStateOf(false) }
-            Text(
-                value = App.Theme.strings.colors,
-                onClick = {
-                    dialogColors = true
-                },
-            )
-            if (dialogColors) {
-                DialogColors {
-                    dialogColors = false
-                }
-            }
-            var dialogLanguage by remember { mutableStateOf(false) }
-            Text(
-                value = App.Theme.strings.language,
-                onClick = {
-                    dialogLanguage = true
-                },
-            )
-            if (dialogLanguage) {
-                DialogLanguage {
-                    dialogLanguage = false
-                }
-            }
-            SettingsRange()
-            SettingsDelay()
-        }
+        Buttons(modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.Center))
     }
 }

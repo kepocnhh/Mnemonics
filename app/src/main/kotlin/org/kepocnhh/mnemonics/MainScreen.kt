@@ -3,11 +3,11 @@ package org.kepocnhh.mnemonics
 import android.content.res.Configuration
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,7 +31,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -91,33 +90,12 @@ private fun ProgressBarHorizontal(value: Float) {
 }
 
 @Composable
-private fun ProgressBarVertical(
-    value: Float,
-    foreground: Color = App.Theme.colors.foreground,
-    background: Color = foreground.copy(alpha = 0.5f),
-) {
-    Box(
-        modifier = Modifier
-            .width(App.Theme.dimensions.progress)
-            .background(background)
-            .fillMaxHeight()
-    ) {
-        Box(
-            modifier = Modifier
-                .background(foreground)
-                .fillMaxWidth()
-                .fillMaxHeight(value)
-        )
-    }
-}
-
-@Composable
 private fun PlayPauseButton() {
     val viewModel = App.viewModel<MainViewModel>()
     val state by viewModel.state.collectAsState()
     Box(
         modifier = Modifier
-            .size(App.Theme.dimensions.button * 2)
+            .size(App.Theme.dimensions.button)
             .clickable {
                 viewModel.pause(!state.isPaused)
             },
@@ -135,19 +113,12 @@ private fun PlayPauseButton() {
     }
 }
 
-private fun MutableState<Long?>.getOrSet(newValue: Long): Long {
-    val result = value
-    if (result != null) return result
-    value = newValue
-    return newValue
-}
-
 @Composable
 internal fun ToSettings(onBack: () -> Unit) {
     val TAG = "[ToSettings]"
     println("$TAG:\n\tcompose...")
     val orientation = LocalConfiguration.current.orientation
-    val initialWidth = LocalConfiguration.current.screenWidthDp.dp
+    val initialWidth = LocalConfiguration.current.screenWidthDp.dp + App.Theme.dimensions.insets.end
     val targetWidth = when (orientation) {
         Configuration.ORIENTATION_LANDSCAPE -> initialWidth / 2
         else -> initialWidth
@@ -191,6 +162,53 @@ internal fun ToSettings(onBack: () -> Unit) {
                 onBack = {
                     if (!back) back = true
                 }
+            )
+        }
+    }
+}
+
+@Composable
+private fun Toolbar(
+    modifier: Modifier,
+    state: MainViewModel.State,
+    onPlayPause: () -> Unit,
+    toSettings: () -> Unit,
+) {
+    Box(modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(App.Theme.dimensions.button)
+                .clickable {
+                    onPlayPause()
+                },
+        ) {
+            Image(
+                modifier = Modifier
+                    .size(App.Theme.dimensions.icon)
+                    .align(Alignment.Center),
+                painter = painterResource(
+                    id = if (state.isPaused) R.drawable.play else R.drawable.pause
+                ),
+                contentDescription = if (state.isPaused) App.Theme.strings.play else App.Theme.strings.pause,
+                colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
+            )
+        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(App.Theme.dimensions.toolbar)
+                .clickable {
+                    toSettings()
+                },
+        ) {
+            Image(
+                modifier = Modifier
+                    .size(App.Theme.dimensions.icon)
+                    .align(Alignment.Center),
+                painter = painterResource(id = R.drawable.gear),
+                contentDescription = App.Theme.strings.settings,
+                colorFilter = ColorFilter.tint(App.Theme.colors.foreground)
             )
         }
     }
@@ -243,18 +261,11 @@ private fun NextNumber() {
 }
 
 @Composable
-private fun MainScreenPortrait() {
+private fun MainScreenPortrait(toSettings: MutableState<Boolean>) {
     Box(Modifier.fillMaxSize()) {
         val viewModel = App.viewModel<MainViewModel>()
         val state by viewModel.state.collectAsState()
         val env by viewModel.env.collectAsState()
-        var toSettings by rememberSaveable { mutableStateOf(false) }
-        Toolbar(
-            toSettings = {
-                viewModel.pause(true)
-                toSettings = true
-            }
-        )
         NextNumber()
         Column(
             modifier = Modifier
@@ -275,12 +286,25 @@ private fun MainScreenPortrait() {
                 family = FontFamily.Monospace
             )
             ProgressBar()
-            PlayPauseButton()
         }
-        if (toSettings) {
+        Toolbar(
+            modifier = Modifier.fillMaxWidth()
+                .padding(bottom = App.Theme.dimensions.insets.bottom)
+                .height(App.Theme.dimensions.toolbar)
+                .align(Alignment.BottomStart),
+            state = state,
+            onPlayPause = {
+                viewModel.pause(!state.isPaused)
+            },
+            toSettings = {
+                viewModel.pause(true)
+                toSettings.value = true
+            }
+        )
+        if (toSettings.value) {
             ToSettings(
                 onBack = {
-                    toSettings = false
+                    toSettings.value = false
                 }
             )
         }
@@ -288,18 +312,11 @@ private fun MainScreenPortrait() {
 }
 
 @Composable
-private fun MainScreenLandscape() {
+private fun MainScreenLandscape(toSettings: MutableState<Boolean>) {
     Box(Modifier.fillMaxSize()) {
         val viewModel = App.viewModel<MainViewModel>()
         val state by viewModel.state.collectAsState()
         val env by viewModel.env.collectAsState()
-        var toSettings by rememberSaveable { mutableStateOf(false) }
-        Toolbar(
-            toSettings = {
-                viewModel.pause(true)
-                toSettings = true
-            }
-        )
         NextNumber()
         Column(
             modifier = Modifier
@@ -324,7 +341,6 @@ private fun MainScreenLandscape() {
                     size = 128.sp,
                     family = FontFamily.Monospace
                 )
-                PlayPauseButton()
             }
             Box(
                 modifier = Modifier
@@ -339,10 +355,27 @@ private fun MainScreenLandscape() {
                 ProgressBar()
             }
         }
-        if (toSettings) {
+        Toolbar(
+            modifier = Modifier.fillMaxHeight()
+                .padding(
+                    top = App.Theme.dimensions.insets.top,
+                    end = App.Theme.dimensions.insets.end,
+                )
+                .width(App.Theme.dimensions.toolbar)
+                .align(Alignment.CenterEnd),
+            state = state,
+            onPlayPause = {
+                viewModel.pause(!state.isPaused)
+            },
+            toSettings = {
+                viewModel.pause(true)
+                toSettings.value = true
+            }
+        )
+        if (toSettings.value) {
             ToSettings(
                 onBack = {
-                    toSettings = false
+                    toSettings.value = false
                 }
             )
         }
@@ -351,9 +384,9 @@ private fun MainScreenLandscape() {
 
 @Composable
 internal fun MainScreen() {
-    val orientation = LocalConfiguration.current.orientation
-    when (orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> MainScreenLandscape()
-        else -> MainScreenPortrait()
+    val toSettings = rememberSaveable { mutableStateOf(false) }
+    when (LocalConfiguration.current.orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> MainScreenLandscape(toSettings)
+        else -> MainScreenPortrait(toSettings)
     }
 }
