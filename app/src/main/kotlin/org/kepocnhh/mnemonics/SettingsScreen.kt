@@ -475,43 +475,61 @@ private fun Columns(modifier: Modifier) {
 }
 
 @Composable
-internal fun SettingsScreen(
-    onBack: () -> Unit,
-) {
-    BackHandler {
-        onBack()
-    }
+private fun SettingsScreenLandscape(onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(App.Theme.colors.background)
             .padding(end = App.Theme.dimensions.insets.end),
     ) {
-        when (LocalConfiguration.current.orientation) {
-            Configuration.ORIENTATION_LANDSCAPE -> {
-                Toolbar(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(App.Theme.dimensions.toolbar)
-                        .align(Alignment.BottomStart),
-                    onBack = onBack,
-                )
-            }
-            else -> {
-                Toolbar(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = App.Theme.dimensions.insets.bottom)
-                        .height(App.Theme.dimensions.toolbar)
-                        .align(Alignment.BottomStart),
-                    onBack = onBack,
-                )
-            }
-        }
+        Toolbar(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(App.Theme.dimensions.toolbar)
+                .align(Alignment.BottomStart),
+            onBack = onBack,
+        )
+        Columns(
+            modifier = Modifier.fillMaxWidth()
+                .padding(top = App.Theme.dimensions.insets.top)
+        )
+    }
+}
+
+@Composable
+private fun SettingsScreenPortrait(onBack: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(App.Theme.colors.background),
+    ) {
+        Toolbar(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = App.Theme.dimensions.insets.bottom)
+                .height(App.Theme.dimensions.toolbar)
+                .align(Alignment.BottomStart),
+            onBack = onBack,
+        )
         Columns(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.Center)
         )
+    }
+}
+
+@Composable
+internal fun SettingsScreen(onBack: () -> Unit) {
+    BackHandler {
+        onBack()
+    }
+    when (LocalConfiguration.current.orientation) {
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            SettingsScreenLandscape(onBack = onBack)
+        }
+        else -> {
+            SettingsScreenPortrait(onBack = onBack)
+        }
     }
 }
