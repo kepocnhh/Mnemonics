@@ -49,38 +49,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
-private fun DialogColors(onDismiss: () -> Unit) {
-    Dialog(
-        onDismissRequest = onDismiss,
-    ) {
-        val themeViewModel = App.viewModel<ThemeViewModel>()
-        Column(modifier = Modifier.background(App.Theme.colors.background)) {
-            Text(
-                value = App.Theme.strings.light,
-                onClick = {
-                    themeViewModel.setColorsType(ColorsType.LIGHT)
-                    onDismiss()
-                },
-            )
-            Text(
-                value = App.Theme.strings.dark,
-                onClick = {
-                    themeViewModel.setColorsType(ColorsType.DARK)
-                    onDismiss()
-                },
-            )
-            Text(
-                value = App.Theme.strings.auto,
-                onClick = {
-                    themeViewModel.setColorsType(ColorsType.AUTO)
-                    onDismiss()
-                },
-            )
-        }
-    }
-}
-
-@Composable
 private fun DialogLanguage(onDismiss: () -> Unit) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -365,20 +333,85 @@ private fun Toolbar(
 }
 
 @Composable
-private fun Buttons(modifier: Modifier) {
-    Column(modifier = modifier) {
-        var dialogColors by remember { mutableStateOf(false) }
-        Text(
-            value = App.Theme.strings.colors,
-            onClick = {
-                dialogColors = true
-            },
-        )
-        if (dialogColors) {
-            DialogColors {
-                dialogColors = false
+private fun DialogColors(
+    actual: ColorsType,
+    onDismiss: () -> Unit,
+    onColorsType: (ColorsType) -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+    ) {
+        Column(modifier = Modifier.background(App.Theme.colors.background)) {
+            ColorsType.values().forEach {
+                Text(
+                    weight = if (actual == it) FontWeight.Bold else FontWeight.Normal,
+                    value = when (it) {
+                        ColorsType.DARK -> App.Theme.strings.dark
+                        ColorsType.LIGHT -> App.Theme.strings.light
+                        ColorsType.AUTO -> App.Theme.strings.auto
+                    },
+                    onClick = {
+                        onColorsType(it)
+                        onDismiss()
+                    },
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun SettingsColors() {
+    val themeViewModel = App.viewModel<ThemeViewModel>()
+    val theme = themeViewModel.state.collectAsState().value
+    if (theme == null) {
+        themeViewModel.requestThemeState()
+        return
+    }
+    var dialog by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(App.Theme.dimensions.button)
+            .clickable {
+                dialog = true
+            }
+    ) {
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            value = App.Theme.strings.colors,
+        )
+        Text(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 16.dp),
+            weight = FontWeight.Bold,
+            value = when (theme.colorsType) {
+                ColorsType.DARK -> App.Theme.strings.dark
+                ColorsType.LIGHT -> App.Theme.strings.light
+                ColorsType.AUTO -> App.Theme.strings.auto
+            }
+        )
+    }
+    if (dialog) {
+        DialogColors(
+            actual = theme.colorsType,
+            onDismiss = {
+                dialog = false
+            },
+            onColorsType = {
+                if (theme.colorsType != it) {
+                    themeViewModel.setColorsType(it)
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun Columns(modifier: Modifier) {
+    Column(modifier = modifier) {
+        SettingsColors()
         var dialogLanguage by remember { mutableStateOf(false) }
         Text(
             value = App.Theme.strings.language,
@@ -412,7 +445,8 @@ internal fun SettingsScreen(
         when (LocalConfiguration.current.orientation) {
             Configuration.ORIENTATION_LANDSCAPE -> {
                 Toolbar(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .height(App.Theme.dimensions.toolbar)
                         .align(Alignment.BottomStart),
                     onBack = onBack,
@@ -420,7 +454,8 @@ internal fun SettingsScreen(
             }
             else -> {
                 Toolbar(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(bottom = App.Theme.dimensions.insets.bottom)
                         .height(App.Theme.dimensions.toolbar)
                         .align(Alignment.BottomStart),
@@ -428,8 +463,10 @@ internal fun SettingsScreen(
                 )
             }
         }
-        Buttons(modifier = Modifier
-            .fillMaxWidth()
-            .align(Alignment.Center))
+        Columns(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center)
+        )
     }
 }
