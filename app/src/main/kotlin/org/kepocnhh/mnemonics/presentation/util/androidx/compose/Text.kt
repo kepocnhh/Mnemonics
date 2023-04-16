@@ -26,6 +26,7 @@ internal fun Text(
     height: Dp = App.Theme.dimensions.button,
     size: TextUnit = App.Theme.dimensions.text,
     family: FontFamily = FontFamily.Default,
+    weight: FontWeight = FontWeight.Normal,
     color: Color = App.Theme.colors.foreground,
     align: TextAlign = TextAlign.Center,
     onClick: () -> Unit
@@ -40,6 +41,7 @@ internal fun Text(
             .wrapContentHeight(Alignment.CenterVertically),
         style = TextStyle(
             fontFamily = family,
+            fontWeight = weight,
             fontSize = size,
             color = color,
             textAlign = align,
