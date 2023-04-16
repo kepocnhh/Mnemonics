@@ -45,6 +45,7 @@ import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Insets
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.Text
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.padding
 import org.kepocnhh.mnemonics.presentation.util.androidx.compose.ui.viewinterop.Spinner
+import org.kepocnhh.mnemonics.presentation.util.androidx.compose.ui.window.DialogList
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -332,6 +333,7 @@ private fun Toolbar(
     }
 }
 
+@Deprecated(message = "DialogList")
 @Composable
 private fun DialogColors(
     actual: ColorsType,
@@ -409,21 +411,64 @@ private fun SettingsColors() {
 }
 
 @Composable
+private fun SettingsLanguage() {
+    val themeViewModel = App.viewModel<ThemeViewModel>()
+    val theme = themeViewModel.state.collectAsState().value
+    if (theme == null) {
+        themeViewModel.requestThemeState()
+        return
+    }
+    var dialog by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(App.Theme.dimensions.button)
+            .clickable {
+                dialog = true
+            }
+    ) {
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            value = App.Theme.strings.language,
+        )
+        Text(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 16.dp),
+            weight = FontWeight.Bold,
+            value = when (theme.language) {
+                Language.RU -> App.Theme.strings.ru
+                Language.EN -> App.Theme.strings.en
+                Language.AUTO -> App.Theme.strings.auto
+            }
+        )
+    }
+    if (dialog) {
+        DialogList(
+            actual = theme.language,
+            values = Language.values().toSet(),
+            transform = {
+                when (it) {
+                    Language.RU -> App.Theme.strings.ru
+                    Language.EN -> App.Theme.strings.en
+                    Language.AUTO -> App.Theme.strings.auto
+                }
+            },
+            onDismiss = {
+                dialog = false
+            },
+            onSelect = {
+                themeViewModel.setLanguage(it)
+            }
+        )
+    }
+}
+
+@Composable
 private fun Columns(modifier: Modifier) {
     Column(modifier = modifier) {
         SettingsColors()
-        var dialogLanguage by remember { mutableStateOf(false) }
-        Text(
-            value = App.Theme.strings.language,
-            onClick = {
-                dialogLanguage = true
-            },
-        )
-        if (dialogLanguage) {
-            DialogLanguage {
-                dialogLanguage = false
-            }
-        }
+        SettingsLanguage()
         SettingsRange()
         SettingsDelay()
     }
